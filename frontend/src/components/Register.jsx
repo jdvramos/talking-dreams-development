@@ -14,7 +14,8 @@ import FilterDramaIcon from "@mui/icons-material/FilterDrama";
 import isEmail from "validator/lib/isEmail";
 import { Link as RouterLink } from "react-router-dom";
 import { useState, useEffect, useRef } from "react";
-import axios from "../api/axios";
+import { useDispatch } from "react-redux";
+import { registerUser } from "../features/authSlice";
 
 const AuthSidebar = styled(Box)(({ theme }) => ({
     display: "none",
@@ -28,6 +29,14 @@ const AuthSidebar = styled(Box)(({ theme }) => ({
     },
 }));
 
+const AuthBox = styled(Box)(({ theme }) => ({
+    maxWidth: "300px",
+    [theme.breakpoints.up("sm")]: {
+        maxWidth: "416px",
+        width: "100%",
+    },
+}));
+
 const InputGroup = styled(Box)(({ theme }) => ({
     display: "flex",
     gap: "15px",
@@ -35,10 +44,11 @@ const InputGroup = styled(Box)(({ theme }) => ({
 
 const NAME_REGEX = /^[a-zA-Z]{2,50}( [a-zA-Z]{0,49}[a-zA-Z])? *$/;
 const PWD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%]).{8,24}$/;
-const REGISTER_URL = "/register";
 
 const Register = () => {
     const firstNameRef = useRef();
+
+    const dispatch = useDispatch();
 
     const [firstName, setFirstName] = useState("");
     const [validFirstName, setValidFirstName] = useState(false);
@@ -131,32 +141,40 @@ const Register = () => {
         console.log("Confirm: ", matchPwd);
 
         try {
-            const response = await axios.post(
-                REGISTER_URL,
-                JSON.stringify({ properFirstName, properLastName, email, pwd }),
-                {
-                    headers: { "Content-Type": "application/json" },
-                    withCredentials: true,
-                }
-            );
-            console.log(response.data);
-            console.log(response.accessToken);
-            console.log(JSON.stringify(response));
+            // const response = await axios.post(
+            //     REGISTER_URL,
+            //     JSON.stringify({ properFirstName, properLastName, email, pwd }),
+            //     {
+            //         headers: { "Content-Type": "application/json" },
+            //         withCredentials: true,
+            //     }
+            // );
+            const result = await dispatch(
+                registerUser(properFirstName, properLastName, email, pwd)
+            ).unwrap();
+
+            console.log(result);
+
+            // console.log(response.data);
+            // console.log(response.accessToken);
+            // console.log(JSON.stringify(response));
             setSuccess(true);
             // Clear the input fields by setting the state of user, pwd, matchPwd to empty string
         } catch (err) {
-            if (!err?.response) {
+            if (err?.response?.status === 400) {
+                setErrTitle("Error: Bad Request");
+                setErrMsg(
+                    "The server could not process your request because it contained invalid or incomplete data. Please check your inputs and try again."
+                );
+            } else if (err?.response?.status === 409) {
+                setErrTitle("Error: Conflict");
+                setErrMsg(
+                    "It seems that this email has already been used to create an account. Please try logging in or use a different email to register."
+                );
+            } else {
                 setErrTitle("Error: Server Error");
                 setErrMsg(
                     "Oops! Something went wrong on our end. Please try again later."
-                );
-            } else if (err.response?.status === 409) {
-                setErrTitle("Error: Conflict");
-                setErrMsg("Email is already registered.");
-            } else {
-                setErrTitle("Error: Invalid Input");
-                setErrMsg(
-                    "The server did not understand your request. Please check that you have filled out all required fields correctly and try again."
                 );
             }
         }
@@ -171,7 +189,7 @@ const Register = () => {
                 alignItems="center"
                 flex={1}
             >
-                <Box maxWidth="416px" width="100%">
+                <AuthBox>
                     <Stack direction="row" alignItems="center" mb={4} gap={1}>
                         <Typography variant="h5" fontWeight={700} component="p">
                             talking dreams
@@ -191,10 +209,8 @@ const Register = () => {
 
                     {errTitle && errMsg && (
                         <Alert severity="error" sx={{ mb: 4 }}>
-                            <AlertTitle>Error: Bad Request</AlertTitle>
-                            The server could not understand your request because
-                            it was malformed or incomplete. Please check your
-                            inputs and try again.
+                            <AlertTitle>{errTitle}</AlertTitle>
+                            {errMsg}
                         </Alert>
                     )}
 
@@ -206,7 +222,7 @@ const Register = () => {
                         </Alert>
                     )}
 
-                    <form onSubmit={handleSubmit}>
+                    <form>
                         <InputGroup>
                             <Stack sx={{ width: "50%" }}>
                                 <InputLabel
@@ -431,7 +447,7 @@ const Register = () => {
                             Sign In
                         </MUILink>
                     </Typography>
-                </Box>
+                </AuthBox>
             </Stack>
         </Stack>
     );

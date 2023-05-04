@@ -59,31 +59,26 @@ const Login = () => {
         e.preventDefault();
 
         try {
-            const result = await dispatch(loginUser(email, pwd)).unwrap();
-
-            // console.log(result);
+            const result = await dispatch(loginUser({ email, pwd })).unwrap();
 
             setEmail("");
             setPwd("");
             setSuccess(true);
-            navigate("/");
+            // navigate("/");
         } catch (err) {
-            console.log(err);
+            const { status, message } = err;
 
-            if (!err?.response) {
-                setErrTitle("Error: Server Error");
-                setErrMsg("No Server Response");
-            } else if (err.response?.status === 400) {
+            if (status === 400) {
                 setErrTitle("Error: Bad Request");
-                setErrMsg(
-                    "The server could not process your request because it contained invalid or incomplete data. Please check your inputs and try again."
-                );
-            } else if (err.response?.status === 401) {
+                setErrMsg(message);
+            } else if (status === 401) {
                 setErrTitle("Error: Unauthorized");
-                setErrMsg("Incorrect Username or Password");
+                setErrMsg(message);
             } else {
-                setErrTitle("Error");
-                setErrMsg("Login Failed. Please try again later.");
+                setErrTitle("Error: Server Error");
+                setErrMsg(
+                    "Oops! Something went wrong on our end. Please try again later."
+                );
             }
         }
     };

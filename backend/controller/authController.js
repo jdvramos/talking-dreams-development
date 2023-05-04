@@ -41,7 +41,6 @@ module.exports.registerUser = async (req, res) => {
     });
 
     // Cookie is sent for every request, however httpOnly is secured because JS can't access it
-    // Remove property 'secure: true' when testing with Thunder Client to make /refresh route work, but put it back because it's required with Chrome when app is deployed
     res.cookie("jwt", refreshToken, {
         httpOnly: true,
         sameSite: "None",
@@ -54,6 +53,53 @@ module.exports.registerUser = async (req, res) => {
             firstName,
             lastName,
             email,
+        },
+        accessToken,
+    });
+};
+
+module.exports.loginUser = async (req, res) => {
+    const { email, pwd } = req.body;
+
+    if (!email || !pwd) {
+        throw new BadRequestError(
+            "The server could not process your request because it contained invalid or incomplete data. Please check your inputs and try again."
+        );
+    }
+
+    const user = await User.findOne({ email }).select("+pwd");
+
+    if (!user) {
+        throw new UnAuthenticatedError("Incorrect email or password.");
+    }
+
+    const isPasswordCorrect = await user.comparePassword(pwd);
+
+    if (!isPasswordCorrect) {
+        throw new UnAuthenticatedError("Incorrect email or password.");
+    }
+
+    const accessToken = createAccessToken(email);
+    const refreshToken = createRefreshToken(email);
+
+    // Updating the refreshToken of the logged in user. This will not trigger the pre-save hook in the User model and will only trigger the validation of the refreshToken property.
+    user.refreshToken = refreshToken;
+    user.markModified("refreshToken"); // indicate that refreshToken has been modified
+    const result = await user.save({ validateModifiedOnly: true }); // validate only modified fields
+
+    // Cookie is sent for every request, however httpOnly is secured because JS can't access it
+    res.cookie("jwt", refreshToken, {
+        httpOnly: true,
+        sameSite: "None",
+        secure: true,
+        maxAge: 24 * 60 * 60 * 1000,
+    });
+
+    res.status(StatusCodes.OK).json({
+        userInfo: {
+            firstName: user.firstName,
+            lastName: user.lastName,
+            email: user.email,
         },
         accessToken,
     });

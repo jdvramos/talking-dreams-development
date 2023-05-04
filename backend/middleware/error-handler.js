@@ -13,7 +13,7 @@ const errorHandlerMiddleware = (err, req, res, next) => {
         defaultError.statusCode = StatusCodes.BAD_REQUEST;
         defaultError.msg = Object.values(err.errors)
             .map((item) => item.message)
-            .join(",");
+            .join(" ");
     }
 
     // When user tries to register an email that already exist (from Mongoose)
@@ -21,6 +21,9 @@ const errorHandlerMiddleware = (err, req, res, next) => {
         defaultError.statusCode = StatusCodes.BAD_REQUEST;
         defaultError.msg = `${Object.keys(err.keyValue)} has to be unique`;
     }
+
+    console.log("Status code: ", defaultError.statusCode);
+    console.log("Message: ", defaultError.msg);
 
     res.status(defaultError.statusCode).json({ msg: defaultError.msg });
 };

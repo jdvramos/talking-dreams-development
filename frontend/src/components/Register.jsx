@@ -121,8 +121,6 @@ const Register = () => {
             return;
         }
 
-        // use trim and uppercase the first letter
-
         function capitalizeFirstLetterOfEveryWord(str) {
             let words = str.split(" ");
             for (let i = 0; i < words.length; i++) {
@@ -141,36 +139,27 @@ const Register = () => {
         console.log("Confirm: ", matchPwd);
 
         try {
-            // const response = await axios.post(
-            //     REGISTER_URL,
-            //     JSON.stringify({ properFirstName, properLastName, email, pwd }),
-            //     {
-            //         headers: { "Content-Type": "application/json" },
-            //         withCredentials: true,
-            //     }
-            // );
             const result = await dispatch(
-                registerUser(properFirstName, properLastName, email, pwd)
+                registerUser({
+                    firstName: properFirstName,
+                    lastName: properLastName,
+                    email,
+                    pwd,
+                })
             ).unwrap();
 
             console.log(result);
-
-            // console.log(response.data);
-            // console.log(response.accessToken);
-            // console.log(JSON.stringify(response));
             setSuccess(true);
             // Clear the input fields by setting the state of user, pwd, matchPwd to empty string
         } catch (err) {
-            if (err?.response?.status === 400) {
+            const { status, message } = err;
+
+            if (status === 400) {
                 setErrTitle("Error: Bad Request");
-                setErrMsg(
-                    "The server could not process your request because it contained invalid or incomplete data. Please check your inputs and try again."
-                );
-            } else if (err?.response?.status === 409) {
+                setErrMsg(message);
+            } else if (status === 409) {
                 setErrTitle("Error: Conflict");
-                setErrMsg(
-                    "It seems that this email has already been used to create an account. Please try logging in or use a different email to register."
-                );
+                setErrMsg(message);
             } else {
                 setErrTitle("Error: Server Error");
                 setErrMsg(

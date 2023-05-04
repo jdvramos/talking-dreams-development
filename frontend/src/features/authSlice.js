@@ -5,16 +5,16 @@ const initialState = {
     userInfo: null,
 };
 
-const LOGIN_URL = "/login";
-const REGISTER_URL = "/register";
+const LOGIN_URL = "/api/v1/auth/login";
+const REGISTER_URL = "/api/v1/auth/register";
 
 export const loginUser = createAsyncThunk(
     "auth/loginUser",
-    async (email, pwd) => {
+    async (existingUserCredentials, { rejectWithValue }) => {
         try {
             const response = await axios.post(
                 LOGIN_URL,
-                JSON.stringify({ email, pwd }),
+                JSON.stringify(existingUserCredentials),
                 {
                     headers: { "Content-Type": "application/json" },
                     withCredentials: true,
@@ -22,23 +22,22 @@ export const loginUser = createAsyncThunk(
             );
             return response.data;
         } catch (error) {
-            throw error;
+            console.log(error);
+            throw rejectWithValue({
+                status: error.response.status,
+                message: error.response.data.msg,
+            });
         }
     }
 );
 
 export const registerUser = createAsyncThunk(
     "auth/registerUser",
-    async (properFirstName, properLastName, email, pwd) => {
+    async (newUserCredentials, { rejectWithValue }) => {
         try {
             const response = await axios.post(
                 REGISTER_URL,
-                JSON.stringify({
-                    firstName: properFirstName,
-                    lastName: properLastName,
-                    email,
-                    pwd,
-                }),
+                JSON.stringify(newUserCredentials),
                 {
                     headers: { "Content-Type": "application/json" },
                     withCredentials: true,
@@ -46,7 +45,11 @@ export const registerUser = createAsyncThunk(
             );
             return response.data;
         } catch (error) {
-            throw error;
+            console.log(error);
+            throw rejectWithValue({
+                status: error.response.status,
+                message: error.response.data.msg,
+            });
         }
     }
 );

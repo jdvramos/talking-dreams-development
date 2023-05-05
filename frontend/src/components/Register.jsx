@@ -9,8 +9,14 @@ import {
     styled,
     Alert,
     AlertTitle,
+    Switch,
+    FormControlLabel,
+    Input,
+    IconButton,
 } from "@mui/material";
 import FilterDramaIcon from "@mui/icons-material/FilterDrama";
+import AddIcon from "@mui/icons-material/Add";
+import KeyboardBackspaceIcon from "@mui/icons-material/KeyboardBackspace";
 import isEmail from "validator/lib/isEmail";
 import { Link as RouterLink } from "react-router-dom";
 import { useState, useEffect, useRef } from "react";
@@ -37,6 +43,54 @@ const AuthBox = styled(Box)(({ theme }) => ({
     },
 }));
 
+const SliderBox = styled(Box)(({ theme }) => ({
+    height: "324px",
+    position: "relative",
+    overflow: "hidden",
+    marginBottom: "4px",
+}));
+
+const SignUpDetailBox = styled(Box)(({ theme }) => ({
+    marginTop: "4px",
+    position: "absolute",
+    top: 0,
+    transition: "all 0.8s",
+}));
+
+const AddPhotoBox = styled(Box)(({ theme }) => ({
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+    flexDirection: "column",
+    width: "100%",
+    position: "absolute",
+    top: 0,
+    height: "300px",
+    transition: "all 0.8s",
+    // backgroundColor: theme.palette.secondary.light,
+    // border: "1px solid black",
+}));
+
+const CircleContainer = styled(Box)(({ theme }) => ({
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+    marginTop: "28px",
+    border: "10px solid black",
+    borderColor: theme.palette.primary.main,
+}));
+
+const UploadImageCircle = styled(Box)(({ theme }) => ({
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+    width: "200px",
+    height: "200px",
+    borderRadius: "100%",
+    color: theme.palette.primary.main,
+    cursor: "pointer",
+}));
+
 const InputGroup = styled(Box)(({ theme }) => ({
     display: "flex",
     gap: "15px",
@@ -47,8 +101,20 @@ const PWD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%]).{8,24}$/;
 
 const Register = () => {
     const firstNameRef = useRef();
+    const imageUploadRef = useRef();
+    const signupDetailBoxRef = useRef();
 
     const dispatch = useDispatch();
+
+    const [showAddPhoto, setShowAddPhoto] = useState(false);
+
+    const [sliderBoxHeight, setSliderBoxHeight] = useState("324");
+
+    const [signupTranslateValue, setSignupTranslateValue] = useState(0);
+    const [photoBoxTranslateValue, setPhotoBoxTranslateValue] = useState(100);
+
+    const [signupOpacityValue, setSignupOpacityValue] = useState(1);
+    const [photoBoxOpacityValue, setPhotoBoxOpacityValue] = useState(0);
 
     const [firstName, setFirstName] = useState("");
     const [validFirstName, setValidFirstName] = useState(false);
@@ -70,10 +136,26 @@ const Register = () => {
     const [validMatch, setValidMatch] = useState(false);
     const [matchFocus, setMatchFocus] = useState(false);
 
+    const [profileImage, setProfileImage] = useState("");
+    const [validProfileImage, setValidProfileImage] = useState(false);
+
+    const [disableNextButton, setDisableNextButton] = useState(true);
+
     const [errTitle, setErrTitle] = useState("");
     const [errMsg, setErrMsg] = useState("");
 
     const [success, setSuccess] = useState(false);
+
+    const showFirstNameHelperMsg =
+        firstNameFocus && firstName && !validFirstName;
+
+    const showLastNameHelperMsg = lastNameFocus && lastName && !validLastName;
+
+    const showEmailHelperMsg = emailFocus && email && !validEmail;
+
+    const showPwdHelperMsg = pwdFocus && !validPwd;
+
+    const showMatchHelperMsg = matchFocus && !validMatch;
 
     useEffect(() => {
         firstNameRef.current.focus();
@@ -104,7 +186,77 @@ const Register = () => {
     useEffect(() => {
         setErrTitle("");
         setErrMsg("");
-    }, [firstName, lastName, email, pwd, matchPwd]);
+    }, [firstName, lastName, email, pwd, matchPwd, profileImage]);
+
+    useEffect(() => {
+        const disableButton =
+            !validFirstName ||
+            !validLastName ||
+            !validEmail ||
+            !validPwd ||
+            !validMatch
+                ? true
+                : false;
+
+        setDisableNextButton(disableButton);
+    }, [validFirstName, validLastName, validEmail, validPwd, validMatch]);
+
+    useEffect(() => {
+        if (signupDetailBoxRef.current) {
+            setSliderBoxHeight(signupDetailBoxRef.current.offsetHeight);
+        }
+        console.log(signupDetailBoxRef.current.offsetHeight);
+    }, [
+        signupDetailBoxRef,
+        showFirstNameHelperMsg,
+        showLastNameHelperMsg,
+        showEmailHelperMsg,
+        showPwdHelperMsg,
+        showMatchHelperMsg,
+    ]);
+
+    const handleChange = () => {
+        setShowAddPhoto((prev) => !prev);
+
+        setSignupTranslateValue((prev) => (prev === 0 ? -100 : 0));
+        setPhotoBoxTranslateValue((prev) => (prev === 100 ? 0 : 100));
+
+        setSignupOpacityValue((prev) => (prev === 1 ? 0 : 1));
+        setPhotoBoxOpacityValue((prev) => (prev === 1 ? 0 : 1));
+    };
+
+    const handleUploadCircleClick = () => {
+        imageUploadRef.current.click();
+    };
+
+    const handleImageChange = (e) => {
+        const file = e.target.files[0];
+
+        console.log(file);
+        console.log(file.type !== "image/jpeg");
+
+        if (file === undefined) {
+            setErrTitle("Error: Missing Image");
+            setErrMsg("Please upload your profile picture");
+            return;
+        }
+
+        if (file.type !== "image/jpeg" && file.type !== "image/png") {
+            setErrTitle("Error: Invalid Image");
+            setErrMsg(
+                "Please upload a valid profile picture. Only files that have JPEG or PNG extensions are accepted."
+            );
+            return;
+        }
+
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = () => {
+            setProfileImage(reader.result);
+        };
+
+        setValidProfileImage(true);
+    };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -211,196 +363,337 @@ const Register = () => {
                         </Alert>
                     )}
 
-                    <form>
-                        <InputGroup>
-                            <Stack sx={{ width: "50%" }}>
-                                <InputLabel
-                                    htmlFor="firstName"
-                                    sx={{
-                                        fontSize: 16,
-                                        fontWeight: "600",
-                                        color:
+                    <SliderBox sx={{ height: `${sliderBoxHeight}px` }}>
+                        <SignUpDetailBox
+                            ref={signupDetailBoxRef}
+                            sx={{
+                                transform: `translateX(${signupTranslateValue}%)`,
+                                opacity: `${signupOpacityValue}`,
+                            }}
+                        >
+                            <InputGroup>
+                                <Stack sx={{ width: "50%" }}>
+                                    <InputLabel
+                                        htmlFor="firstName"
+                                        sx={{
+                                            fontSize: 16,
+                                            fontWeight: "600",
+                                            color:
+                                                firstName && !validFirstName
+                                                    ? "error.main"
+                                                    : "text.primary",
+                                        }}
+                                    >
+                                        First Name
+                                    </InputLabel>
+                                    <TextField
+                                        inputRef={firstNameRef}
+                                        id="firstName"
+                                        variant="outlined"
+                                        size="small"
+                                        sx={{ mb: 2 }}
+                                        autoComplete="off"
+                                        required
+                                        error={
                                             firstName && !validFirstName
-                                                ? "error.main"
-                                                : "text.primary",
-                                    }}
-                                >
-                                    First Name
-                                </InputLabel>
-                                <TextField
-                                    inputRef={firstNameRef}
-                                    id="firstName"
-                                    variant="outlined"
-                                    size="small"
-                                    sx={{ mb: 2 }}
-                                    autoComplete="off"
-                                    required
-                                    error={
-                                        firstName && !validFirstName
-                                            ? true
-                                            : false
-                                    }
-                                    onChange={(e) =>
-                                        setFirstName(e.target.value)
-                                    }
-                                    onFocus={() => setFirstNameFocus(true)}
-                                    onBlur={() => setFirstNameFocus(false)}
-                                    helperText={
-                                        firstNameFocus &&
-                                        firstName &&
-                                        !validFirstName &&
-                                        "First name must consist of 2-50 alphabetic characters only"
-                                    }
-                                />
-                            </Stack>
+                                                ? true
+                                                : false
+                                        }
+                                        onChange={(e) =>
+                                            setFirstName(e.target.value)
+                                        }
+                                        onFocus={() => setFirstNameFocus(true)}
+                                        onBlur={() => setFirstNameFocus(false)}
+                                        helperText={
+                                            showFirstNameHelperMsg &&
+                                            "First name must consist of 2-50 alphabetic characters only"
+                                        }
+                                    />
+                                </Stack>
 
-                            <Stack sx={{ width: "50%" }}>
-                                <InputLabel
-                                    htmlFor="lastName"
-                                    sx={{
-                                        fontSize: 16,
-                                        fontWeight: "600",
-                                        color:
+                                <Stack sx={{ width: "50%" }}>
+                                    <InputLabel
+                                        htmlFor="lastName"
+                                        sx={{
+                                            fontSize: 16,
+                                            fontWeight: "600",
+                                            color:
+                                                lastName && !validLastName
+                                                    ? "error.main"
+                                                    : "text.primary",
+                                        }}
+                                    >
+                                        Last Name
+                                    </InputLabel>
+                                    <TextField
+                                        id="lastName"
+                                        variant="outlined"
+                                        size="small"
+                                        sx={{ mb: 2 }}
+                                        autoComplete="off"
+                                        required
+                                        error={
                                             lastName && !validLastName
-                                                ? "error.main"
-                                                : "text.primary",
-                                    }}
+                                                ? true
+                                                : false
+                                        }
+                                        onChange={(e) =>
+                                            setLastName(e.target.value)
+                                        }
+                                        onFocus={() => setLastNameFocus(true)}
+                                        onBlur={() => setLastNameFocus(false)}
+                                        helperText={
+                                            showLastNameHelperMsg &&
+                                            "Last name must consist of 2-50 alphabetic characters only"
+                                        }
+                                    />
+                                </Stack>
+                            </InputGroup>
+
+                            <InputLabel
+                                htmlFor="email"
+                                sx={{
+                                    fontSize: 16,
+                                    fontWeight: "600",
+                                    color:
+                                        email && !validEmail
+                                            ? "error.main"
+                                            : "text.primary",
+                                }}
+                            >
+                                Email
+                            </InputLabel>
+                            <TextField
+                                id="email"
+                                type="email"
+                                variant="outlined"
+                                size="small"
+                                fullWidth
+                                sx={{ mb: 2 }}
+                                autoComplete="off"
+                                required
+                                error={email && !validEmail ? true : false}
+                                onChange={(e) => setEmail(e.target.value)}
+                                onFocus={() => setEmailFocus(true)}
+                                onBlur={() => setEmailFocus(false)}
+                                helperText={
+                                    showEmailHelperMsg &&
+                                    "Email address must be valid"
+                                }
+                            />
+
+                            <InputLabel
+                                htmlFor="password"
+                                sx={{
+                                    fontSize: 16,
+                                    fontWeight: "600",
+                                    color:
+                                        pwd && !validPwd
+                                            ? "error.main"
+                                            : "text.primary",
+                                }}
+                            >
+                                Password
+                            </InputLabel>
+                            <TextField
+                                id="password"
+                                type="password"
+                                variant="outlined"
+                                size="small"
+                                fullWidth
+                                sx={{ mb: 2 }}
+                                required
+                                error={pwd && !validPwd ? true : false}
+                                onChange={(e) => setPwd(e.target.value)}
+                                onFocus={() => setPwdFocus(true)}
+                                onBlur={() => setPwdFocus(false)}
+                                helperText={
+                                    showPwdHelperMsg &&
+                                    "Password must contain 8 to 24 characters. Must include uppercase and lowercase letters, a number and a special character. Allowed special characters: ! @ # $ %"
+                                }
+                            />
+
+                            <InputLabel
+                                htmlFor="confirmPassword"
+                                sx={{
+                                    fontSize: 16,
+                                    fontWeight: "600",
+                                    color:
+                                        matchPwd && !validMatch
+                                            ? "error.main"
+                                            : "text.primary",
+                                }}
+                            >
+                                Confirm Password
+                            </InputLabel>
+                            <TextField
+                                id="confirmPassword"
+                                type="password"
+                                variant="outlined"
+                                size="small"
+                                fullWidth
+                                sx={{ mb: 3 }}
+                                required
+                                error={matchPwd && !validMatch ? true : false}
+                                onChange={(e) => setMatchPwd(e.target.value)}
+                                onFocus={() => setMatchFocus(true)}
+                                onBlur={() => setMatchFocus(false)}
+                                helperText={
+                                    showMatchHelperMsg &&
+                                    "Confirm password must match the first password input field."
+                                }
+                            />
+                        </SignUpDetailBox>
+
+                        <AddPhotoBox
+                            sx={{
+                                transform: `translateX(${photoBoxTranslateValue}%)`,
+                                opacity: `${photoBoxOpacityValue}`,
+                            }}
+                        >
+                            <InputLabel
+                                htmlFor="uploadImage"
+                                sx={{
+                                    fontSize: 16,
+                                    fontWeight: "600",
+                                    color: "text.primary",
+                                    position: "absolute",
+                                    top: "4px",
+                                    left: 0,
+                                }}
+                            >
+                                Add Profile Picture
+                            </InputLabel>
+                            <Button
+                                tabIndex={-1}
+                                size="small"
+                                startIcon={<KeyboardBackspaceIcon />}
+                                onClick={handleChange}
+                                sx={{
+                                    display: { xs: "none", sm: "flex" },
+                                    position: "absolute",
+                                    top: 0,
+                                    right: 0,
+                                }}
+                            >
+                                Go Back
+                            </Button>
+                            <IconButton
+                                tabIndex={-1}
+                                size="small"
+                                color="primary"
+                                onClick={handleChange}
+                                sx={{
+                                    display: { xs: "block", sm: "none" },
+                                    position: "absolute",
+                                    top: 0,
+                                    right: 0,
+                                }}
+                            >
+                                <KeyboardBackspaceIcon />
+                            </IconButton>
+                            <CircleContainer
+                                borderRadius="100%"
+                                sx={
+                                    profileImage
+                                        ? {
+                                              "&:hover label": {
+                                                  opacity: 0.4,
+                                              },
+                                              "&:hover .onHoverMsg": {
+                                                  display: "block",
+                                                  position: "absolute",
+                                                  top: "54%",
+                                                  left: "50%",
+                                                  transform:
+                                                      "translate(-50%, -50%)",
+                                                  margin: 0,
+                                                  zIndex: 100,
+                                              },
+                                          }
+                                        : {}
+                                }
+                            >
+                                <UploadImageCircle
+                                    component={InputLabel}
+                                    htmlFor="uploadImage"
+                                    onClick={handleUploadCircleClick}
                                 >
-                                    Last Name
-                                </InputLabel>
-                                <TextField
-                                    id="lastName"
-                                    variant="outlined"
-                                    size="small"
-                                    sx={{ mb: 2 }}
-                                    autoComplete="off"
-                                    required
-                                    error={
-                                        lastName && !validLastName
-                                            ? true
-                                            : false
-                                    }
-                                    onChange={(e) =>
-                                        setLastName(e.target.value)
-                                    }
-                                    onFocus={() => setLastNameFocus(true)}
-                                    onBlur={() => setLastNameFocus(false)}
-                                    helperText={
-                                        lastNameFocus &&
-                                        lastName &&
-                                        !validLastName &&
-                                        "Last name must consist of 2-50 alphabetic characters only"
-                                    }
-                                />
-                            </Stack>
-                        </InputGroup>
+                                    {profileImage ? (
+                                        <Box
+                                            component="img"
+                                            src={profileImage}
+                                            alt="user profile"
+                                            sx={{
+                                                width: "100%",
+                                                height: "100%",
+                                                objectFit: "cover",
+                                            }}
+                                        />
+                                    ) : (
+                                        <AddIcon
+                                            sx={{
+                                                fontSize: "130px",
+                                            }}
+                                        />
+                                    )}
+                                </UploadImageCircle>
+                                <Typography
+                                    sx={{ cursor: "pointer" }}
+                                    className="onHoverMsg"
+                                    display="none"
+                                >
+                                    Change Image
+                                </Typography>
+                                <Input
+                                    type="file"
+                                    id="uploadImage"
+                                    accept="image/*"
+                                    ref={imageUploadRef}
+                                    onChange={handleImageChange}
+                                    sx={{ display: "none" }}
+                                ></Input>
+                            </CircleContainer>
+                        </AddPhotoBox>
+                    </SliderBox>
 
-                        <InputLabel
-                            htmlFor="email"
-                            sx={{
-                                fontSize: 16,
-                                fontWeight: "600",
-                                color:
-                                    email && !validEmail
-                                        ? "error.main"
-                                        : "text.primary",
-                            }}
-                        >
-                            Email
-                        </InputLabel>
-                        <TextField
-                            id="email"
-                            type="email"
-                            variant="outlined"
-                            size="small"
-                            fullWidth
-                            sx={{ mb: 2 }}
-                            autoComplete="off"
-                            required
-                            error={email && !validEmail ? true : false}
-                            onChange={(e) => setEmail(e.target.value)}
-                            onFocus={() => setEmailFocus(true)}
-                            onBlur={() => setEmailFocus(false)}
-                            helperText={
-                                emailFocus &&
-                                email &&
-                                !validEmail &&
-                                "Email address must be valid"
-                            }
-                        />
+                    {!showAddPhoto && (
+                        <span style={{ cursor: "not-allowed" }}>
+                            <Button
+                                disabled={disableNextButton}
+                                onClick={handleChange}
+                                variant="contained"
+                                fullWidth
+                                disableElevation
+                                color="primary"
+                                sx={{
+                                    mb: 2,
+                                    textTransform: "none",
+                                    fontSize: "15px",
+                                    "&.Mui-disabled": {
+                                        // add styles for the disabled state here
+                                        opacity: 0.5,
+                                        pointerEvents: "none",
+                                        backgroundColor: "primary.main",
+                                        color: "#fff",
+                                    },
+                                }}
+                            >
+                                Next
+                            </Button>
+                        </span>
+                    )}
 
-                        <InputLabel
-                            htmlFor="password"
-                            sx={{
-                                fontSize: 16,
-                                fontWeight: "600",
-                                color:
-                                    pwd && !validPwd
-                                        ? "error.main"
-                                        : "text.primary",
-                            }}
-                        >
-                            Password
-                        </InputLabel>
-                        <TextField
-                            id="password"
-                            type="password"
-                            variant="outlined"
-                            size="small"
-                            fullWidth
-                            sx={{ mb: 2 }}
-                            required
-                            error={pwd && !validPwd ? true : false}
-                            onChange={(e) => setPwd(e.target.value)}
-                            onFocus={() => setPwdFocus(true)}
-                            onBlur={() => setPwdFocus(false)}
-                            helperText={
-                                pwdFocus &&
-                                !validPwd &&
-                                "Password must contain 8 to 24 characters. Must include uppercase and lowercase letters, a number and a special character. Allowed special characters: ! @ # $ %"
-                            }
-                        />
-
-                        <InputLabel
-                            htmlFor="confirmPassword"
-                            sx={{
-                                fontSize: 16,
-                                fontWeight: "600",
-                                color:
-                                    matchPwd && !validMatch
-                                        ? "error.main"
-                                        : "text.primary",
-                            }}
-                        >
-                            Confirm Password
-                        </InputLabel>
-                        <TextField
-                            id="confirmPassword"
-                            type="password"
-                            variant="outlined"
-                            size="small"
-                            fullWidth
-                            sx={{ mb: 3 }}
-                            required
-                            error={matchPwd && !validMatch ? true : false}
-                            onChange={(e) => setMatchPwd(e.target.value)}
-                            onFocus={() => setMatchFocus(true)}
-                            onBlur={() => setMatchFocus(false)}
-                            helperText={
-                                matchFocus &&
-                                !validMatch &&
-                                "Confirm password must match the first password input field."
-                            }
-                        />
-
+                    {showAddPhoto && (
                         <span style={{ cursor: "not-allowed" }}>
                             <Button
                                 disabled={
-                                    !firstName ||
-                                    !lastName ||
+                                    !validFirstName ||
+                                    !validLastName ||
                                     !validEmail ||
                                     !validPwd ||
-                                    !validMatch
+                                    !validMatch ||
+                                    !validProfileImage
                                         ? true
                                         : false
                                 }
@@ -425,7 +718,17 @@ const Register = () => {
                                 Create Account
                             </Button>
                         </span>
-                    </form>
+                    )}
+
+                    {/* <FormControlLabel
+                        control={
+                            <Switch
+                                checked={showAddPhoto}
+                                onChange={handleChange}
+                            />
+                        }
+                        label="Show from target"
+                    /> */}
                     <Typography color="text.primary">
                         Already a member?{" "}
                         <MUILink

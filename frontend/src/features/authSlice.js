@@ -1,12 +1,16 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "../api/axios";
+import axiosMain from "axios";
 
 const initialState = {
-    userInfo: null,
+    userInfo: {},
+    accessToken: "",
+    userProfileImage: "",
 };
 
 const LOGIN_URL = "/api/v1/auth/login";
 const REGISTER_URL = "/api/v1/auth/register";
+const CLOUDINARY_URL = "https://api.cloudinary.com/v1_1/dkkcgnkep/image/upload";
 
 export const loginUser = createAsyncThunk(
     "auth/loginUser",
@@ -54,6 +58,24 @@ export const registerUser = createAsyncThunk(
     }
 );
 
+export const uploadImageToCloudinary = createAsyncThunk(
+    "auth/uploadImageToCloudinary",
+    async (imageData, { rejectWithValue }) => {
+        const { data } = imageData;
+        try {
+            const response = await axiosMain.post(CLOUDINARY_URL, data);
+            console.log(response);
+            return response.data.secure_url.toString();
+        } catch (error) {
+            console.log(error);
+            throw rejectWithValue({
+                status: error.response.status,
+                message: error.response.data.msg,
+            });
+        }
+    }
+);
+
 const authSlice = createSlice({
     name: "auth",
     initialState,
@@ -61,10 +83,14 @@ const authSlice = createSlice({
     extraReducers(builder) {
         builder
             .addCase(loginUser.fulfilled, (state, action) => {
-                state.userInfo = action.payload;
+                state.userInfo = action.payload.userInfo;
+                state.accessToken = action.payload.accessToken;
+                state.userProfileImage = action.payload.userProfileImage;
             })
             .addCase(registerUser.fulfilled, (state, action) => {
-                state.userInfo = action.payload;
+                state.userInfo = action.payload.userInfo;
+                state.accessToken = action.payload.accessToken;
+                state.userProfileImage = action.payload.userProfileImage;
             });
     },
 });

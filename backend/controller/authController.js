@@ -12,9 +12,9 @@ const createRefreshToken = require("../utils/createRefreshToken");
 
 // NOTE: If you are wondering why our controllers here do not have try/catch errors is because, basically, we set the express-async-errors package and import it in the server.js
 module.exports.registerUser = async (req, res) => {
-    const { firstName, lastName, email, pwd } = req.body;
+    const { firstName, lastName, email, pwd, userProfileImage } = req.body;
 
-    if (!firstName || !lastName || !email || !pwd) {
+    if (!firstName || !lastName || !email || !pwd || !userProfileImage) {
         throw new BadRequestError(
             "The server could not process your request because it contained invalid or incomplete data. Please check your inputs and try again."
         );
@@ -37,6 +37,7 @@ module.exports.registerUser = async (req, res) => {
         lastName,
         email,
         pwd,
+        userProfileImage,
         refreshToken,
     });
 
@@ -55,6 +56,7 @@ module.exports.registerUser = async (req, res) => {
             email,
         },
         accessToken,
+        userProfileImage,
     });
 };
 
@@ -102,5 +104,6 @@ module.exports.loginUser = async (req, res) => {
             email: user.email,
         },
         accessToken,
+        userProfileImage: user.userProfileImage,
     });
 };

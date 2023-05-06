@@ -21,7 +21,7 @@ import isEmail from "validator/lib/isEmail";
 import { Link as RouterLink } from "react-router-dom";
 import { useState, useEffect, useRef } from "react";
 import { useDispatch } from "react-redux";
-import { registerUser } from "../features/authSlice";
+import { registerUser, uploadImageToCloudinary } from "../features/authSlice";
 
 const AuthSidebar = styled(Box)(({ theme }) => ({
     display: "none",
@@ -136,8 +136,10 @@ const Register = () => {
     const [validMatch, setValidMatch] = useState(false);
     const [matchFocus, setMatchFocus] = useState(false);
 
-    const [profileImage, setProfileImage] = useState("");
+    const [profileImagePreview, setProfileImagePreview] = useState("");
     const [validProfileImage, setValidProfileImage] = useState(false);
+
+    const [realProfileImageData, setRealProfileImageData] = useState(null);
 
     const [disableNextButton, setDisableNextButton] = useState(true);
 
@@ -186,7 +188,7 @@ const Register = () => {
     useEffect(() => {
         setErrTitle("");
         setErrMsg("");
-    }, [firstName, lastName, email, pwd, matchPwd, profileImage]);
+    }, [firstName, lastName, email, pwd, matchPwd, profileImagePreview]);
 
     useEffect(() => {
         const disableButton =
@@ -205,7 +207,6 @@ const Register = () => {
         if (signupDetailBoxRef.current) {
             setSliderBoxHeight(signupDetailBoxRef.current.offsetHeight);
         }
-        console.log(signupDetailBoxRef.current.offsetHeight);
     }, [
         signupDetailBoxRef,
         showFirstNameHelperMsg,
@@ -249,10 +250,12 @@ const Register = () => {
             return;
         }
 
+        setRealProfileImageData(file);
+
         const reader = new FileReader();
         reader.readAsDataURL(file);
         reader.onload = () => {
-            setProfileImage(reader.result);
+            setProfileImagePreview(reader.result);
         };
 
         setValidProfileImage(true);
@@ -267,7 +270,8 @@ const Register = () => {
         const v3 = isEmail(email);
         const v4 = PWD_REGEX.test(pwd);
         const v5 = pwd === matchPwd;
-        if (!v1 || !v2 || !v3 || !v4 || !v5) {
+        const v6 = validProfileImage;
+        if (!v1 || !v2 || !v3 || !v4 || !v5 || !v6) {
             setErrTitle("Error: Access Denied");
             setErrMsg("Invalid Entry");
             return;
@@ -290,13 +294,25 @@ const Register = () => {
         console.log("Pwd: ", pwd);
         console.log("Confirm: ", matchPwd);
 
+        const data = new FormData();
+        data.append("file", realProfileImageData);
+        data.append("upload_preset", "chat-app");
+        data.append("cloud_name", "dkkcgnkep");
+
+        console.log(realProfileImageData);
+
         try {
+            const userProfileImage = await dispatch(
+                uploadImageToCloudinary({ data })
+            ).unwrap();
+
             const result = await dispatch(
                 registerUser({
                     firstName: properFirstName,
                     lastName: properLastName,
                     email,
                     pwd,
+                    userProfileImage,
                 })
             ).unwrap();
 
@@ -357,7 +373,7 @@ const Register = () => {
 
                     {success && (
                         <Alert severity="success" sx={{ mb: 4 }}>
-                            <AlertTitle>Registration Successful</AlertTitle>
+                            <AlertTitle>Sign up Successful</AlertTitle>
                             Congratulations! You have successfully registered.
                             You will now be redirected to the homepage.
                         </Alert>
@@ -595,7 +611,7 @@ const Register = () => {
                             <CircleContainer
                                 borderRadius="100%"
                                 sx={
-                                    profileImage
+                                    profileImagePreview
                                         ? {
                                               "&:hover label": {
                                                   opacity: 0.4,
@@ -619,10 +635,10 @@ const Register = () => {
                                     htmlFor="uploadImage"
                                     onClick={handleUploadCircleClick}
                                 >
-                                    {profileImage ? (
+                                    {profileImagePreview ? (
                                         <Box
                                             component="img"
-                                            src={profileImage}
+                                            src={profileImagePreview}
                                             alt="user profile"
                                             sx={{
                                                 width: "100%",
@@ -658,7 +674,9 @@ const Register = () => {
                     </SliderBox>
 
                     {!showAddPhoto && (
-                        <span style={{ cursor: "not-allowed" }}>
+                        <span
+                            style={{ display: "block", cursor: "not-allowed" }}
+                        >
                             <Button
                                 disabled={disableNextButton}
                                 onClick={handleChange}
@@ -685,7 +703,9 @@ const Register = () => {
                     )}
 
                     {showAddPhoto && (
-                        <span style={{ cursor: "not-allowed" }}>
+                        <span
+                            style={{ display: "block", cursor: "not-allowed" }}
+                        >
                             <Button
                                 disabled={
                                     !validFirstName ||

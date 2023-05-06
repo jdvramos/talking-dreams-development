@@ -1,4 +1,5 @@
 const allowedOrigins = [
+    "http://192.168.1.12:5173",
     "https://www.yourdomain.com",
     "http://localhost:5173",
     "http://localhost:3500",

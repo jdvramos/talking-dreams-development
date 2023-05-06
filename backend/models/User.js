@@ -58,6 +58,9 @@ const UserSchema = new Schema(
             },
             select: false,
         },
+        userProfileImage: {
+            type: String,
+        },
         refreshToken: {
             type: String,
         },

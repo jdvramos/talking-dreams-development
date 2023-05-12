@@ -12,6 +12,7 @@ import CircleIcon from "@mui/icons-material/Circle";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 
 import shortenText from "../utils/shortenText";
+import formatMessageTime from "../utils/formatMessageTime";
 
 const FriendMain = styled(Box)(({ theme }) => ({
     width: "100%",
@@ -20,6 +21,7 @@ const FriendMain = styled(Box)(({ theme }) => ({
     justifyContent: "space-between",
     alignItems: "center",
     cursor: "pointer",
+    borderRadius: "5px",
 }));
 
 const ChatInfo = styled(Box)(({ theme }) => ({
@@ -36,7 +38,7 @@ const MessageStatus = styled(Box)(({ theme }) => ({
     alignItems: "center",
 }));
 
-const Friend = ({ friend, userId, mdBelow }) => {
+const Friend = ({ handleSelectCurrentFriend, friend, userId, mdBelow }) => {
     const theme = useTheme();
     const isDarkMode = theme.palette.mode === "dark";
     const isMedium = useMediaQuery(theme.breakpoints.only("md"));
@@ -47,9 +49,10 @@ const Friend = ({ friend, userId, mdBelow }) => {
         lastName,
         userProfileImage,
     } = friend.friendInfo;
+
     const latestMessage = friend?.latestMessage;
     const messageType = friend?.latestMessage?.messageType;
-    const messageLimit = isMedium ? 14 : 22;
+    const messageLimit = isMedium ? 13 : 22;
 
     return (
         <FriendMain
@@ -58,6 +61,7 @@ const Friend = ({ friend, userId, mdBelow }) => {
                     backgroundColor: isDarkMode ? "grey.800" : "grey.200",
                 },
             }}
+            onClick={() => handleSelectCurrentFriend(friend.friendInfo)}
         >
             <Avatar
                 src={userProfileImage}
@@ -82,6 +86,12 @@ const Friend = ({ friend, userId, mdBelow }) => {
                         <Typography
                             variant="caption"
                             fontSize="0.85rem"
+                            color={
+                                latestMessage?.status === "delivered" &&
+                                latestMessage?.senderId !== userId
+                                    ? "text.primary"
+                                    : "text.secondary"
+                            }
                             fontWeight={
                                 latestMessage?.status === "delivered" &&
                                 latestMessage?.senderId !== userId
@@ -129,7 +139,7 @@ const Friend = ({ friend, userId, mdBelow }) => {
                         •
                     </Typography>
                     <Typography variant="caption" fontSize="0.85rem">
-                        1d
+                        {formatMessageTime(latestMessage?.created_at)}
                     </Typography>
                 </Stack>
             </ChatInfo>

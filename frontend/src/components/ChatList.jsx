@@ -29,11 +29,15 @@ const ChatListMain = styled(Box)(({ theme }) => ({
     display: "flex",
     flexDirection: "column",
     // backgroundColor: theme.palette.secondary.light,
-    [theme.breakpoints.up("xs")]: {
-        width: "100%",
-    },
+    // [theme.breakpoints.up("xs")]: {
+    //     width: "100%",
+    // },
     [theme.breakpoints.up("md")]: {
         width: "250px",
+        borderWidth: 0,
+        borderStyle: "solid",
+        borderColor: theme.palette.divider,
+        borderRightWidth: "thin",
     },
     [theme.breakpoints.up("lg")]: {
         width: "310px",
@@ -80,7 +84,12 @@ const SearchTextField = styled(TextField)(({ theme }) => ({
     marginBottom: "10px",
 }));
 
-const ChatList = ({ setMode, mdBelow }) => {
+const ChatList = ({
+    handleSelectCurrentFriend,
+    setMode,
+    mdBelow,
+    showChatList,
+}) => {
     const theme = useTheme();
     const isDarkMode = theme.palette.mode === "dark";
 
@@ -115,7 +124,9 @@ const ChatList = ({ setMode, mdBelow }) => {
     }, [mdBelow]);
 
     return (
-        <ChatListMain>
+        <ChatListMain
+            sx={showChatList ? { width: "100%" } : { display: "none" }}
+        >
             <CLHeader>
                 <CLHeaderContent>
                     <Typography
@@ -199,8 +210,15 @@ const ChatList = ({ setMode, mdBelow }) => {
             >
                 {fakeFriends &&
                     fakeFriends.length > 0 &&
-                    fakeFriends.map((friend, i) => (
-                        <Friend key={i} friend={friend} userId={userId} />
+                    fakeFriends.map((friend) => (
+                        <Friend
+                            key={friend.friendInfo._id}
+                            friend={friend}
+                            userId={userId}
+                            handleSelectCurrentFriend={
+                                handleSelectCurrentFriend
+                            }
+                        />
                     ))}
             </CLFriends>
         </ChatListMain>

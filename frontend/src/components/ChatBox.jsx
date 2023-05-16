@@ -1,16 +1,26 @@
 import {
     Avatar,
+    Badge,
     Box,
     IconButton,
+    InputAdornment,
+    Menu,
+    MenuItem,
     Stack,
+    TextField,
     Typography,
     styled,
     useTheme,
 } from "@mui/material";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
-import MoreHorizIcon from "@mui/icons-material/MoreHoriz";
+import InfoIcon from "@mui/icons-material/Info";
+import ImageIcon from "@mui/icons-material/Image";
+import EmojiEmotionsIcon from "@mui/icons-material/EmojiEmotions";
+import ThumbUpIcon from "@mui/icons-material/ThumbUp";
+import SendIcon from "@mui/icons-material/Send";
 import FriendOpening from "./FriendOpening";
 import Messages from "./Messages";
+import { useEffect, useState } from "react";
 
 const CBHeader = styled(Box)(({ theme }) => ({
     display: "flex",
@@ -42,10 +52,52 @@ const CBSender = styled(Box)(({ theme }) => ({
     justifyContent: "center",
     alignItems: "center",
     height: "60px",
+    padding: "0 5px",
     borderWidth: 0,
     borderStyle: "solid",
     borderColor: theme.palette.divider,
     borderTopWidth: "thin",
+}));
+
+const ChatTextField = styled(TextField)(({ theme }) => ({
+    marginLeft: "5px",
+    marginRight: "5px",
+    paddingRight: "0",
+    "& .MuiInputBase-adornedEnd": {
+        paddingRight: "0px",
+    },
+    "& .MuiFilledInput-input": {
+        paddingTop: "8px",
+    },
+}));
+
+const StyledBadge = styled(Badge)(({ theme }) => ({
+    "& .MuiBadge-badge": {
+        backgroundColor: "#44b700",
+        color: "#44b700",
+        boxShadow: `0 0 0 2px ${theme.palette.background.default}`,
+        "&::after": {
+            position: "absolute",
+            top: 0,
+            left: 0,
+            width: "100%",
+            height: "100%",
+            borderRadius: "50%",
+            animation: "ripple 1.2s infinite ease-in-out",
+            border: "1px solid currentColor",
+            content: '""',
+        },
+    },
+    "@keyframes ripple": {
+        "0%": {
+            transform: "scale(.8)",
+            opacity: 1,
+        },
+        "100%": {
+            transform: "scale(2.4)",
+            opacity: 0,
+        },
+    },
 }));
 
 const ChatBox = ({
@@ -55,8 +107,38 @@ const ChatBox = ({
     isDarkMode,
     goBackToChatList,
     userId,
+    handleMessageChange,
+    message,
+    addEmoji,
+    fakeActiveUsers,
+    setChatInfoOpen,
+    scrollRef,
 }) => {
     const theme = useTheme();
+
+    const emojis = ["❤️", "😆", "😮", "😢", "😡"];
+
+    const [anchorEl, setAnchorEl] = useState(null);
+    const [isFriendOnline, setFriendOnline] = useState(false);
+    const open = Boolean(anchorEl);
+
+    const handleOpenEmojiMenu = (event) => {
+        setAnchorEl(event.currentTarget);
+    };
+
+    const handleCloseEmojiMenu = () => {
+        setAnchorEl(null);
+    };
+
+    useEffect(() => {
+        const isOnline =
+            fakeActiveUsers &&
+            fakeActiveUsers.length > 0 &&
+            fakeActiveUsers.some((user) => user.userId === currentFriend?._id)
+                ? true
+                : false;
+        setFriendOnline(isOnline);
+    }, [fakeActiveUsers, currentFriend]);
 
     return (
         <>
@@ -67,17 +149,34 @@ const ChatBox = ({
                             <IconButton
                                 onClick={() => goBackToChatList()}
                                 aria-label="back"
-                                sx={{ marginLeft: 1 }}
+                                sx={{ color: "#1976d2", marginLeft: 1 }}
                             >
                                 <ArrowBackIcon />
                             </IconButton>
                         )}
                         <CBFriendInfo marginLeft={!mdBelow ? 3 : 1}>
-                            <Avatar
-                                src={currentFriend?.userProfileImage}
-                                alt={`${currentFriend?.firstName} ${currentFriend?.lastName}`}
-                                sx={{ width: "44px", height: "44px" }}
-                            />
+                            {isFriendOnline ? (
+                                <StyledBadge
+                                    overlap="circular"
+                                    anchorOrigin={{
+                                        vertical: "bottom",
+                                        horizontal: "right",
+                                    }}
+                                    variant="dot"
+                                >
+                                    <Avatar
+                                        src={currentFriend?.userProfileImage}
+                                        alt={`${currentFriend?.firstName} ${currentFriend?.lastName}`}
+                                        sx={{ width: "44px", height: "44px" }}
+                                    />
+                                </StyledBadge>
+                            ) : (
+                                <Avatar
+                                    src={currentFriend?.userProfileImage}
+                                    alt={`${currentFriend?.firstName} ${currentFriend?.lastName}`}
+                                    sx={{ width: "44px", height: "44px" }}
+                                />
+                            )}
                             <Stack ml={1}>
                                 <Typography
                                     variant="body1"
@@ -92,15 +191,16 @@ const ChatBox = ({
                                     fontWeight={400}
                                     color="text.secondary"
                                 >
-                                    Online
+                                    {isFriendOnline ? "Online" : "Offline"}
                                 </Typography>
                             </Stack>
                         </CBFriendInfo>
                         <IconButton
                             aria-label="more info"
-                            sx={{ marginRight: 1 }}
+                            sx={{ color: "#1976d2", marginRight: 1 }}
+                            onClick={() => setChatInfoOpen((prev) => !prev)}
                         >
-                            <MoreHorizIcon />
+                            <InfoIcon />
                         </IconButton>
                     </CBHeader>
                     <CBMessages
@@ -124,10 +224,90 @@ const ChatBox = ({
                             userId={userId}
                             currentFriend={currentFriend}
                             isDarkMode={isDarkMode}
+                            scrollRef={scrollRef}
                         />
                     </CBMessages>
                     <CBSender>
-                        <Typography variant="body2">Chat Box</Typography>
+                        <IconButton
+                            aria-label="insert image"
+                            size="medium"
+                            sx={{ color: "#1976d2" }}
+                        >
+                            <ImageIcon fontSize="inherit" />
+                        </IconButton>
+                        <ChatTextField
+                            id="search"
+                            variant="filled"
+                            className="roundedInput"
+                            autoComplete="off"
+                            placeholder="Write a message"
+                            fullWidth
+                            onChange={handleMessageChange}
+                            value={message}
+                            InputProps={{
+                                endAdornment: (
+                                    <InputAdornment
+                                        className="searchIcon"
+                                        position="end"
+                                    >
+                                        <IconButton
+                                            aria-label="insert image"
+                                            size="medium"
+                                            sx={{ color: "#1976d2" }}
+                                            onClick={handleOpenEmojiMenu}
+                                        >
+                                            <EmojiEmotionsIcon fontSize="inherit" />
+                                        </IconButton>
+                                        <Menu
+                                            id="menu-btn"
+                                            anchorEl={anchorEl}
+                                            open={open}
+                                            onClose={handleCloseEmojiMenu}
+                                            anchorOrigin={{
+                                                vertical: "top",
+                                                horizontal: "center",
+                                            }}
+                                            transformOrigin={{
+                                                vertical: "bottom",
+                                                horizontal: "center",
+                                            }}
+                                        >
+                                            <Stack direction="row">
+                                                {emojis &&
+                                                    emojis.map((emoji, i) => (
+                                                        <MenuItem
+                                                            key={i}
+                                                            onClick={() =>
+                                                                addEmoji(emoji)
+                                                            }
+                                                        >
+                                                            {emoji}
+                                                        </MenuItem>
+                                                    ))}
+                                            </Stack>
+                                        </Menu>
+                                    </InputAdornment>
+                                ),
+                                disableUnderline: true, // <== added this
+                            }}
+                        ></ChatTextField>
+                        {message ? (
+                            <IconButton
+                                aria-label="send like emoji"
+                                size="medium"
+                                sx={{ color: "#1976d2" }}
+                            >
+                                <SendIcon fontSize="inherit" />
+                            </IconButton>
+                        ) : (
+                            <IconButton
+                                aria-label="send like emoji"
+                                size="medium"
+                                sx={{ color: "#1976d2" }}
+                            >
+                                <ThumbUpIcon fontSize="inherit" />
+                            </IconButton>
+                        )}
                     </CBSender>
                 </>
             ) : (

@@ -8,7 +8,8 @@ import {
 } from "@mui/material";
 import ChatList from "./ChatList";
 import ChatBox from "./ChatBox";
-import { useEffect, useState } from "react";
+import ChatInfo from "./ChatInfo";
+import { useEffect, useRef, useState } from "react";
 
 // FOR TESTING PURPOSES ONLY DELETE LATER
 import {
@@ -16,6 +17,7 @@ import {
     fakeMessagesLalo,
     fakeMessagesSaul,
     userId,
+    fakeActiveUsers,
 } from "../fakedata/fakedata";
 
 const SideBar = styled(Box)(({ theme }) => ({
@@ -42,24 +44,36 @@ const ChatBoxGridItem = styled(Grid)(({ theme }) => ({
     flexDirection: "column",
     justifyContent: "center",
     height: "100%",
+}));
+
+const ChatInfoGridItem = styled(Grid)(({ theme }) => ({
+    display: "flex",
+    flexDirection: "column",
+    paddingTop: "20px",
+    height: "100%",
     borderWidth: 0,
     borderStyle: "solid",
     borderColor: theme.palette.divider,
-    borderRightWidth: "thin",
+    borderLeftWidth: "thin",
 }));
 
-const ChatInfoGridItem = styled(Grid)(({ theme }) => ({}));
-
 const Messenger = ({ setMode }) => {
+    const scrollRef = useRef();
+
     const theme = useTheme();
     const isDarkMode = theme.palette.mode === "dark";
 
     const mdBelow = useMediaQuery(theme.breakpoints.down("md"));
+    const lgAbove = useMediaQuery(theme.breakpoints.up("lg"));
 
     const [showChatList, setShowChatList] = useState(true);
 
+    const [message, setMessage] = useState("");
+
     const [currentFriend, setCurrentFriend] = useState(null);
     const [currentMessages, setCurrentMessages] = useState([]);
+
+    const [chatInfoOpen, setChatInfoOpen] = useState(false);
 
     const handleSelectCurrentFriend = (friendInfo) => {
         setCurrentFriend(friendInfo);
@@ -68,6 +82,14 @@ const Messenger = ({ setMode }) => {
             setShowChatList(false);
         }
     };
+
+    useEffect(() => {
+        scrollRef.current?.scrollIntoView();
+    }, [currentMessages]);
+
+    useEffect(() => {
+        console.log("lgAbove", lgAbove);
+    }, [lgAbove]);
 
     const goBackToChatList = () => {
         setShowChatList(true);
@@ -87,6 +109,10 @@ const Messenger = ({ setMode }) => {
                 setCurrentMessages([]);
             }
         }
+        if (currentFriend) {
+            setMessage("");
+            setChatInfoOpen(true);
+        }
     }, [currentFriend]);
 
     useEffect(() => {
@@ -103,6 +129,14 @@ const Messenger = ({ setMode }) => {
         }
     }, [mdBelow]);
 
+    const handleMessageChange = (e) => {
+        setMessage(e.target.value);
+    };
+
+    const addEmoji = (emoji) => {
+        setMessage(`${message}` + emoji);
+    };
+
     return (
         <MessengerContainer direction="row">
             <SideBar></SideBar>
@@ -113,6 +147,7 @@ const Messenger = ({ setMode }) => {
                 mdBelow={mdBelow}
                 showChatList={showChatList}
                 currentFriend={currentFriend}
+                fakeActiveUsers={fakeActiveUsers}
             ></ChatList>
             <Grid
                 display={showChatList && mdBelow ? "none" : "flex"}
@@ -120,7 +155,12 @@ const Messenger = ({ setMode }) => {
                 container
                 height="100%"
             >
-                <ChatBoxGridItem item xs={12} md={12} lg={8}>
+                <ChatBoxGridItem
+                    item
+                    xs={12}
+                    md={12}
+                    lg={chatInfoOpen ? 8 : 12}
+                >
                     <ChatBox
                         currentFriend={currentFriend}
                         currentMessages={currentMessages}
@@ -128,9 +168,19 @@ const Messenger = ({ setMode }) => {
                         isDarkMode={isDarkMode}
                         goBackToChatList={goBackToChatList}
                         userId={userId}
+                        handleMessageChange={handleMessageChange}
+                        message={message}
+                        addEmoji={addEmoji}
+                        fakeActiveUsers={fakeActiveUsers}
+                        setChatInfoOpen={setChatInfoOpen}
+                        scrollRef={scrollRef}
                     />
                 </ChatBoxGridItem>
-                <ChatInfoGridItem item lg={4}></ChatInfoGridItem>
+                {chatInfoOpen && lgAbove && (
+                    <ChatInfoGridItem item lg={4}>
+                        <ChatInfo currentFriend={currentFriend} />
+                    </ChatInfoGridItem>
+                )}
             </Grid>
         </MessengerContainer>
     );

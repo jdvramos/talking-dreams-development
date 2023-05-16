@@ -7,6 +7,7 @@ import {
     useTheme,
     Stack,
     Button,
+    Badge,
 } from "@mui/material";
 import CircleIcon from "@mui/icons-material/Circle";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
@@ -38,11 +39,41 @@ const MessageStatus = styled(Box)(({ theme }) => ({
     alignItems: "center",
 }));
 
+const StyledBadge = styled(Badge)(({ theme }) => ({
+    "& .MuiBadge-badge": {
+        backgroundColor: "#44b700",
+        color: "#44b700",
+        boxShadow: `0 0 0 2px ${theme.palette.background.default}`,
+        "&::after": {
+            position: "absolute",
+            top: 0,
+            left: 0,
+            width: "100%",
+            height: "100%",
+            borderRadius: "50%",
+            animation: "ripple 1.2s infinite ease-in-out",
+            border: "1px solid currentColor",
+            content: '""',
+        },
+    },
+    "@keyframes ripple": {
+        "0%": {
+            transform: "scale(.8)",
+            opacity: 1,
+        },
+        "100%": {
+            transform: "scale(2.4)",
+            opacity: 0,
+        },
+    },
+}));
+
 const Friend = ({
     handleSelectCurrentFriend,
     friend,
     userId,
     currentFriend,
+    fakeActiveUsers,
 }) => {
     const theme = useTheme();
     const isDarkMode = theme.palette.mode === "dark";
@@ -75,11 +106,27 @@ const Friend = ({
                     : ""
             }
         >
-            <Avatar
-                src={userProfileImage}
-                alt={`${firstName} ${lastName}`}
-                sx={{ width: "48px", height: "48px" }}
-            />
+            {fakeActiveUsers &&
+            fakeActiveUsers.length > 0 &&
+            fakeActiveUsers.some((user) => user.userId === friendId) ? (
+                <StyledBadge
+                    overlap="circular"
+                    anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+                    variant="dot"
+                >
+                    <Avatar
+                        src={userProfileImage}
+                        alt={`${firstName} ${lastName}`}
+                        sx={{ width: "48px", height: "48px" }}
+                    />
+                </StyledBadge>
+            ) : (
+                <Avatar
+                    src={userProfileImage}
+                    alt={`${firstName} ${lastName}`}
+                    sx={{ width: "48px", height: "48px" }}
+                />
+            )}
             <ChatInfo flex={1}>
                 <Typography
                     variant="body1"
@@ -87,7 +134,7 @@ const Friend = ({
                     fontWeight={
                         latestMessage?.status === "delivered" &&
                         latestMessage?.senderId !== userId
-                            ? 800
+                            ? 700
                             : 400
                     }
                 >
@@ -107,7 +154,7 @@ const Friend = ({
                             fontWeight={
                                 latestMessage?.status === "delivered" &&
                                 latestMessage?.senderId !== userId
-                                    ? 800
+                                    ? 700
                                     : 400
                             }
                         >
@@ -128,7 +175,7 @@ const Friend = ({
                             fontWeight={
                                 latestMessage?.status === "delivered" &&
                                 latestMessage?.senderId !== userId
-                                    ? 800
+                                    ? 700
                                     : 400
                             }
                         >
@@ -156,7 +203,7 @@ const Friend = ({
                         fontWeight={
                             latestMessage?.status === "delivered" &&
                             latestMessage?.senderId !== userId
-                                ? 800
+                                ? 700
                                 : 400
                         }
                         color={
@@ -187,7 +234,9 @@ const Friend = ({
                     )}
                 {latestMessage?.senderId === friendId &&
                     latestMessage?.status === "delivered" && (
-                        <CircleIcon color="primary" sx={{ fontSize: "12px" }} />
+                        <CircleIcon
+                            sx={{ color: "#1976d2", fontSize: "12px" }}
+                        />
                     )}
                 {latestMessage?.senderId === friendId &&
                     latestMessage?.status === "seen" && (

@@ -30,10 +30,16 @@ const MessageBubble = styled(Box)(({ theme }) => ({
     alignItems: "center",
     padding: "10px 15px",
     color: "#fff",
-    borderRadius: "15px",
+    borderRadius: "20px",
 }));
 
-const Messages = ({ currentMessages, userId, currentFriend, isDarkMode }) => {
+const Messages = ({
+    currentMessages,
+    userId,
+    currentFriend,
+    isDarkMode,
+    scrollRef,
+}) => {
     return (
         <>
             {currentMessages && currentMessages.length > 0 && (
@@ -42,6 +48,7 @@ const Messages = ({ currentMessages, userId, currentFriend, isDarkMode }) => {
                         message.senderId === userId ? (
                             <YourMessage
                                 key={message._id}
+                                ref={scrollRef}
                                 mr={
                                     index === currentMessages.length - 1
                                         ? 0
@@ -51,7 +58,10 @@ const Messages = ({ currentMessages, userId, currentFriend, isDarkMode }) => {
                                 <Stack direction="row" alignItems="flex-end">
                                     <MessageBubble bgcolor="#1976d2">
                                         {message.messageType === "text" ? (
-                                            <Typography variant="body2">
+                                            <Typography
+                                                variant="body2"
+                                                fontSize="0.92rem"
+                                            >
                                                 {message.content}
                                             </Typography>
                                         ) : (
@@ -104,7 +114,11 @@ const Messages = ({ currentMessages, userId, currentFriend, isDarkMode }) => {
                                 </Typography>
                             </YourMessage>
                         ) : (
-                            <FriendMessage key={message._id} ml="14px">
+                            <FriendMessage
+                                key={message._id}
+                                ref={scrollRef}
+                                ml="14px"
+                            >
                                 <Avatar
                                     src={currentFriend?.userProfileImage}
                                     alt={`${currentFriend?.firstName} ${currentFriend?.lastName}`}
@@ -123,6 +137,7 @@ const Messages = ({ currentMessages, userId, currentFriend, isDarkMode }) => {
                                         {message.messageType === "text" ? (
                                             <Typography
                                                 variant="body2"
+                                                fontSize="0.92rem"
                                                 color={
                                                     !isDarkMode &&
                                                     "text.primary"

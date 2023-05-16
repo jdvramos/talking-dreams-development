@@ -13,9 +13,10 @@ import {
     InputAdornment,
     useTheme,
 } from "@mui/material";
-import PersonAddAlt1Icon from "@mui/icons-material/PersonAddAlt1";
+
 import DarkModeIcon from "@mui/icons-material/DarkMode";
-import SettingsIcon from "@mui/icons-material/Settings";
+import CreateIcon from "@mui/icons-material/Create";
+import MoreHorizIcon from "@mui/icons-material/MoreHoriz";
 import LogoutIcon from "@mui/icons-material/Logout";
 import SearchIcon from "@mui/icons-material/Search";
 import Friend from "./Friend";
@@ -91,6 +92,7 @@ const ChatList = ({
     mdBelow,
     showChatList,
     currentFriend,
+    fakeActiveUsers,
 }) => {
     const theme = useTheme();
 
@@ -139,8 +141,23 @@ const ChatList = ({
                         Chats
                     </Typography>
                     <Box pr="20px">
-                        <IconButton id="menu-btn" onClick={handleClickMenu}>
-                            <SettingsIcon />
+                        <IconButton
+                            id="menu-btn"
+                            onClick={handleClickMenu}
+                            size="small"
+                            sx={{
+                                backgroundColor: isDarkMode
+                                    ? "grey.800"
+                                    : "grey.200",
+                                marginRight: "13px",
+                                "&:hover": {
+                                    backgroundColor: isDarkMode
+                                        ? "grey.700"
+                                        : "grey.300",
+                                },
+                            }}
+                        >
+                            <MoreHorizIcon />
                         </IconButton>
                         <Menu
                             id="menu-btn"
@@ -170,8 +187,20 @@ const ChatList = ({
                                 <ListItemText>Sign out</ListItemText>
                             </MenuItem>
                         </Menu>
-                        <IconButton>
-                            <PersonAddAlt1Icon />
+                        <IconButton
+                            size="small"
+                            sx={{
+                                backgroundColor: isDarkMode
+                                    ? "grey.800"
+                                    : "grey.200",
+                                "&:hover": {
+                                    backgroundColor: isDarkMode
+                                        ? "grey.700"
+                                        : "grey.300",
+                                },
+                            }}
+                        >
+                            <CreateIcon />
                         </IconButton>
                     </Box>
                 </CLHeaderContent>
@@ -220,6 +249,7 @@ const ChatList = ({
                                 handleSelectCurrentFriend
                             }
                             currentFriend={currentFriend}
+                            fakeActiveUsers={fakeActiveUsers}
                         />
                     ))}
             </CLFriends>

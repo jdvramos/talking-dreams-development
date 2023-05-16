@@ -726,6 +726,37 @@ export const fakeMessagesLalo = [
     },
 ];
 
+export const fakeActiveUsers = [
+    {
+        socketId: "1",
+        userId: "10",
+        userInfo: {
+            _id: "10",
+            firstName: "Saul",
+            lastName: "Goodman",
+            email: "saulgoodman@gmail.com",
+            userProfileImage:
+                "https://res.cloudinary.com/dkkcgnkep/image/upload/v1683349951/nxbrqywajxpgm9jzblwz.png",
+            created_at: "",
+            updated_at: "",
+        },
+    },
+    {
+        socketId: "2",
+        userId: "11",
+        userInfo: {
+            _id: "11",
+            firstName: "Kim",
+            lastName: "Wexler",
+            email: "kimwexler@gmail.com",
+            userProfileImage:
+                "https://res.cloudinary.com/dkkcgnkep/image/upload/v1683365247/pkjr7u2eyndcfx41jsvq.png",
+            created_at: "",
+            updated_at: "",
+        },
+    },
+];
+
 export const fakeFriends = [
     {
         friendInfo: {

@@ -5,9 +5,12 @@ import {
     Stack,
     Typography,
     styled,
+    useTheme,
 } from "@mui/material";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import MoreHorizIcon from "@mui/icons-material/MoreHoriz";
+import FriendOpening from "./FriendOpening";
+import Messages from "./Messages";
 
 const CBHeader = styled(Box)(({ theme }) => ({
     display: "flex",
@@ -29,8 +32,9 @@ const CBFriendInfo = styled(Box)(({ theme }) => ({
 const CBMessages = styled(Box)(({ theme }) => ({
     flex: 1,
     display: "flex",
-    justifyContent: "center",
+    flexDirection: "column",
     alignItems: "center",
+    overflowY: "auto",
 }));
 
 const CBSender = styled(Box)(({ theme }) => ({
@@ -44,7 +48,16 @@ const CBSender = styled(Box)(({ theme }) => ({
     borderTopWidth: "thin",
 }));
 
-const ChatBox = ({ currentFriend, mdBelow, setShowChatList }) => {
+const ChatBox = ({
+    currentFriend,
+    currentMessages,
+    mdBelow,
+    isDarkMode,
+    goBackToChatList,
+    userId,
+}) => {
+    const theme = useTheme();
+
     return (
         <>
             {currentFriend ? (
@@ -52,7 +65,7 @@ const ChatBox = ({ currentFriend, mdBelow, setShowChatList }) => {
                     <CBHeader>
                         {mdBelow && (
                             <IconButton
-                                onClick={() => setShowChatList(true)}
+                                onClick={() => goBackToChatList()}
                                 aria-label="back"
                                 sx={{ marginLeft: 1 }}
                             >
@@ -90,8 +103,28 @@ const ChatBox = ({ currentFriend, mdBelow, setShowChatList }) => {
                             <MoreHorizIcon />
                         </IconButton>
                     </CBHeader>
-                    <CBMessages>
-                        <Typography variant="body2">Messages</Typography>
+                    <CBMessages
+                        sx={{
+                            "&::-webkit-scrollbar": {
+                                width: "6px",
+                                backgroundColor:
+                                    theme.palette.background.default,
+                            },
+                            "&::-webkit-scrollbar-thumb": {
+                                backgroundColor: isDarkMode
+                                    ? "#5e5e5e"
+                                    : "#C4C4C4",
+                                borderRadius: "3px",
+                            },
+                        }}
+                    >
+                        <FriendOpening currentFriend={currentFriend} />
+                        <Messages
+                            currentMessages={currentMessages}
+                            userId={userId}
+                            currentFriend={currentFriend}
+                            isDarkMode={isDarkMode}
+                        />
                     </CBMessages>
                     <CBSender>
                         <Typography variant="body2">Chat Box</Typography>

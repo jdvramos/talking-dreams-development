@@ -228,6 +228,40 @@ export const fakeMessagesSaul = [
         created_at: "2023-05-12T06:33:21Z",
         updated_at: "",
     },
+    {
+        _id: "21",
+        messageType: "image",
+        content:
+            "https://res.cloudinary.com/dkkcgnkep/image/upload/v1683787150/ugbsrtmlf4wdgv7cnat6.png",
+        senderId: "10",
+        senderName: "Saul Goodman",
+        receiverId: "1",
+        status: "seen",
+        created_at: "2023-05-12T06:33:21Z",
+        updated_at: "",
+    },
+    {
+        _id: "22",
+        messageType: "text",
+        content: "random text",
+        senderId: "1",
+        senderName: "Denzel Ramos",
+        receiverId: "10",
+        status: "seen",
+        created_at: "2023-05-12T06:33:21Z",
+        updated_at: "",
+    },
+    {
+        _id: "23",
+        messageType: "text",
+        content: "random text 2",
+        senderId: "1",
+        senderName: "Denzel Ramos",
+        receiverId: "10",
+        status: "seen",
+        created_at: "2023-05-12T06:33:21Z",
+        updated_at: "",
+    },
 ];
 
 export const fakeMessagesKim = [

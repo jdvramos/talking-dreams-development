@@ -15,6 +15,7 @@ import {
     fakeMessagesKim,
     fakeMessagesLalo,
     fakeMessagesSaul,
+    userId,
 } from "../fakedata/fakedata";
 
 const SideBar = styled(Box)(({ theme }) => ({
@@ -40,6 +41,7 @@ const ChatBoxGridItem = styled(Grid)(({ theme }) => ({
     display: "flex",
     flexDirection: "column",
     justifyContent: "center",
+    height: "100%",
     borderWidth: 0,
     borderStyle: "solid",
     borderColor: theme.palette.divider,
@@ -50,6 +52,7 @@ const ChatInfoGridItem = styled(Grid)(({ theme }) => ({}));
 
 const Messenger = ({ setMode }) => {
     const theme = useTheme();
+    const isDarkMode = theme.palette.mode === "dark";
 
     const mdBelow = useMediaQuery(theme.breakpoints.down("md"));
 
@@ -64,6 +67,11 @@ const Messenger = ({ setMode }) => {
         if (mdBelow) {
             setShowChatList(false);
         }
+    };
+
+    const goBackToChatList = () => {
+        setShowChatList(true);
+        setCurrentFriend(null);
     };
 
     useEffect(() => {
@@ -89,6 +97,10 @@ const Messenger = ({ setMode }) => {
         if (!showChatList && !mdBelow) {
             setShowChatList(true);
         }
+
+        if (currentFriend && mdBelow) {
+            setCurrentFriend(null);
+        }
     }, [mdBelow]);
 
     return (
@@ -97,8 +109,10 @@ const Messenger = ({ setMode }) => {
             <ChatList
                 handleSelectCurrentFriend={handleSelectCurrentFriend}
                 setMode={setMode}
+                isDarkMode={isDarkMode}
                 mdBelow={mdBelow}
                 showChatList={showChatList}
+                currentFriend={currentFriend}
             ></ChatList>
             <Grid
                 display={showChatList && mdBelow ? "none" : "flex"}
@@ -109,8 +123,11 @@ const Messenger = ({ setMode }) => {
                 <ChatBoxGridItem item xs={12} md={12} lg={8}>
                     <ChatBox
                         currentFriend={currentFriend}
+                        currentMessages={currentMessages}
                         mdBelow={mdBelow}
-                        setShowChatList={setShowChatList}
+                        isDarkMode={isDarkMode}
+                        goBackToChatList={goBackToChatList}
+                        userId={userId}
                     />
                 </ChatBoxGridItem>
                 <ChatInfoGridItem item lg={4}></ChatInfoGridItem>

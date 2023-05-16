@@ -38,7 +38,12 @@ const MessageStatus = styled(Box)(({ theme }) => ({
     alignItems: "center",
 }));
 
-const Friend = ({ handleSelectCurrentFriend, friend, userId, mdBelow }) => {
+const Friend = ({
+    handleSelectCurrentFriend,
+    friend,
+    userId,
+    currentFriend,
+}) => {
     const theme = useTheme();
     const isDarkMode = theme.palette.mode === "dark";
     const isMedium = useMediaQuery(theme.breakpoints.only("md"));
@@ -62,6 +67,13 @@ const Friend = ({ handleSelectCurrentFriend, friend, userId, mdBelow }) => {
                 },
             }}
             onClick={() => handleSelectCurrentFriend(friend.friendInfo)}
+            className={
+                friendId === currentFriend?._id
+                    ? isDarkMode
+                        ? "active-dark"
+                        : "active-light"
+                    : ""
+            }
         >
             <Avatar
                 src={userProfileImage}
@@ -76,7 +88,7 @@ const Friend = ({ handleSelectCurrentFriend, friend, userId, mdBelow }) => {
                         latestMessage?.status === "delivered" &&
                         latestMessage?.senderId !== userId
                             ? 800
-                            : 500
+                            : 400
                     }
                 >
                     {`${firstName} ${lastName}`}
@@ -138,7 +150,22 @@ const Friend = ({ handleSelectCurrentFriend, friend, userId, mdBelow }) => {
                     <Typography variant="caption" fontSize="0.85rem" px="3px">
                         •
                     </Typography>
-                    <Typography variant="caption" fontSize="0.85rem">
+                    <Typography
+                        variant="caption"
+                        fontSize="0.85rem"
+                        fontWeight={
+                            latestMessage?.status === "delivered" &&
+                            latestMessage?.senderId !== userId
+                                ? 800
+                                : 400
+                        }
+                        color={
+                            latestMessage?.status === "delivered" &&
+                            latestMessage?.senderId !== userId
+                                ? "text.primary"
+                                : "text.secondary"
+                        }
+                    >
                         {formatMessageTime(latestMessage?.created_at)}
                     </Typography>
                 </Stack>

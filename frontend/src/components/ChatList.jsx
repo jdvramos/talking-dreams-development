@@ -87,11 +87,12 @@ const SearchTextField = styled(TextField)(({ theme }) => ({
 const ChatList = ({
     handleSelectCurrentFriend,
     setMode,
+    isDarkMode,
     mdBelow,
     showChatList,
+    currentFriend,
 }) => {
     const theme = useTheme();
-    const isDarkMode = theme.palette.mode === "dark";
 
     const [anchorEl, setAnchorEl] = useState(null);
     const [switchChecked, setSwitchChecked] = useState(false);
@@ -218,6 +219,7 @@ const ChatList = ({
                             handleSelectCurrentFriend={
                                 handleSelectCurrentFriend
                             }
+                            currentFriend={currentFriend}
                         />
                     ))}
             </CLFriends>

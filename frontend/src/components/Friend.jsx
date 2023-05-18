@@ -6,7 +6,6 @@ import {
     useMediaQuery,
     useTheme,
     Stack,
-    Button,
     Badge,
 } from "@mui/material";
 import CircleIcon from "@mui/icons-material/Circle";

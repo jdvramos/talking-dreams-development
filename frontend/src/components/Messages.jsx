@@ -48,7 +48,11 @@ const Messages = ({
                         message.senderId === userId ? (
                             <YourMessage
                                 key={message._id}
-                                ref={scrollRef}
+                                ref={
+                                    index === currentMessages.length - 1
+                                        ? scrollRef
+                                        : null
+                                }
                                 mr={
                                     index === currentMessages.length - 1
                                         ? 0
@@ -116,7 +120,11 @@ const Messages = ({
                         ) : (
                             <FriendMessage
                                 key={message._id}
-                                ref={scrollRef}
+                                ref={
+                                    index === currentMessages.length - 1
+                                        ? scrollRef
+                                        : null
+                                }
                                 ml="14px"
                             >
                                 <Avatar

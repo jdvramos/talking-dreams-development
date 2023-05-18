@@ -9,6 +9,7 @@ import {
 import ChatList from "./ChatList";
 import ChatBox from "./ChatBox";
 import ChatInfo from "./ChatInfo";
+import ChatInfoDrawer from "./ChatInfoDrawer";
 import { useEffect, useRef, useState } from "react";
 
 // FOR TESTING PURPOSES ONLY DELETE LATER
@@ -49,6 +50,7 @@ const ChatBoxGridItem = styled(Grid)(({ theme }) => ({
 const ChatInfoGridItem = styled(Grid)(({ theme }) => ({
     display: "flex",
     flexDirection: "column",
+    alignItems: "center",
     paddingTop: "20px",
     height: "100%",
     borderWidth: 0,
@@ -65,6 +67,8 @@ const Messenger = ({ setMode }) => {
 
     const mdBelow = useMediaQuery(theme.breakpoints.down("md"));
     const lgAbove = useMediaQuery(theme.breakpoints.up("lg"));
+    const xlAbove = useMediaQuery(theme.breakpoints.up("xl"));
+    const mdOnly = useMediaQuery(theme.breakpoints.only("md"));
 
     const [showChatList, setShowChatList] = useState(true);
 
@@ -84,6 +88,10 @@ const Messenger = ({ setMode }) => {
     };
 
     useEffect(() => {
+        console.log("chatInfoOpen: ", chatInfoOpen);
+    }, [chatInfoOpen]);
+
+    useEffect(() => {
         scrollRef.current?.scrollIntoView();
     }, [currentMessages]);
 
@@ -91,9 +99,14 @@ const Messenger = ({ setMode }) => {
         console.log("lgAbove", lgAbove);
     }, [lgAbove]);
 
+    useEffect(() => {
+        console.log("mdBelow", mdBelow);
+    }, [mdBelow]);
+
     const goBackToChatList = () => {
         setShowChatList(true);
         setCurrentFriend(null);
+        setCurrentMessages([]);
     };
 
     useEffect(() => {
@@ -111,7 +124,10 @@ const Messenger = ({ setMode }) => {
         }
         if (currentFriend) {
             setMessage("");
-            setChatInfoOpen(true);
+            // setChatInfoOpen(true);
+        }
+        if (currentFriend === null) {
+            setChatInfoOpen(false);
         }
     }, [currentFriend]);
 
@@ -126,6 +142,7 @@ const Messenger = ({ setMode }) => {
 
         if (currentFriend && mdBelow) {
             setCurrentFriend(null);
+            setCurrentMessages([]);
         }
     }, [mdBelow]);
 
@@ -157,9 +174,9 @@ const Messenger = ({ setMode }) => {
             >
                 <ChatBoxGridItem
                     item
-                    xs={12}
+                    xs={chatInfoOpen && mdBelow ? 0 : 12}
                     md={12}
-                    lg={chatInfoOpen ? 8 : 12}
+                    lg={chatInfoOpen && lgAbove ? 8 : 12}
                 >
                     <ChatBox
                         currentFriend={currentFriend}
@@ -176,10 +193,70 @@ const Messenger = ({ setMode }) => {
                         scrollRef={scrollRef}
                     />
                 </ChatBoxGridItem>
-                {chatInfoOpen && lgAbove && (
+                {/* <ChatBoxGridItem
+                    item
+                    xs={chatInfoOpen && mdBelow ? 0 : 12}
+                    md={chatInfoOpen && mdOnly ? null : 12}
+                    lg={chatInfoOpen && lgAbove ? 8 : 12}
+                >
+                    <ChatBox
+                        currentFriend={currentFriend}
+                        currentMessages={currentMessages}
+                        mdBelow={mdBelow}
+                        isDarkMode={isDarkMode}
+                        goBackToChatList={goBackToChatList}
+                        userId={userId}
+                        handleMessageChange={handleMessageChange}
+                        message={message}
+                        addEmoji={addEmoji}
+                        fakeActiveUsers={fakeActiveUsers}
+                        setChatInfoOpen={setChatInfoOpen}
+                        scrollRef={scrollRef}
+                    />
+                </ChatBoxGridItem> */}
+                {/* {chatInfoOpen && lgAbove && (
                     <ChatInfoGridItem item lg={4}>
-                        <ChatInfo currentFriend={currentFriend} />
+                        <ChatInfo
+                            currentFriend={currentFriend}
+                            currentMessages={currentMessages}
+                            isDarkMode={isDarkMode}
+                            xlAbove={xlAbove}
+                        />
                     </ChatInfoGridItem>
+                )} */}
+                {chatInfoOpen && (
+                    <>
+                        {lgAbove && (
+                            <ChatInfoGridItem item lg={4}>
+                                <ChatInfo
+                                    currentFriend={currentFriend}
+                                    currentMessages={currentMessages}
+                                    isDarkMode={isDarkMode}
+                                    xlAbove={xlAbove}
+                                />
+                            </ChatInfoGridItem>
+                        )}
+                        {mdOnly && (
+                            <ChatInfoDrawer
+                                currentFriend={currentFriend}
+                                currentMessages={currentMessages}
+                                isDarkMode={isDarkMode}
+                                xlAbove={xlAbove}
+                                chatInfoOpen={chatInfoOpen}
+                                setChatInfoOpen={setChatInfoOpen}
+                            />
+                        )}
+                        {mdBelow && (
+                            <ChatInfoGridItem item xs={12}>
+                                <ChatInfo
+                                    currentFriend={currentFriend}
+                                    currentMessages={currentMessages}
+                                    isDarkMode={isDarkMode}
+                                    xlAbove={xlAbove}
+                                />
+                            </ChatInfoGridItem>
+                        )}
+                    </>
                 )}
             </Grid>
         </MessengerContainer>

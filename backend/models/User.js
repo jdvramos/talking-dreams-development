@@ -64,6 +64,24 @@ const UserSchema = new Schema(
         refreshToken: {
             type: String,
         },
+        // friends: [
+        //     {
+        //         type: Schema.Types.ObjectId,
+        //         ref: "User",
+        //     },
+        // ],
+        // friendRequestSent: [
+        //     {
+        //         type: Schema.Types.ObjectId,
+        //         ref: "User",
+        //     },
+        // ],
+        // friendRequestReceived: [
+        //     {
+        //         type: Schema.Types.ObjectId,
+        //         ref: "User",
+        //     },
+        // ],
     },
     { timestamps: { createdAt: "created_at", updatedAt: "updated_at" } }
 );

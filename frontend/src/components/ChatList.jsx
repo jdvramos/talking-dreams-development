@@ -15,7 +15,7 @@ import {
 } from "@mui/material";
 
 import DarkModeIcon from "@mui/icons-material/DarkMode";
-import CreateIcon from "@mui/icons-material/Create";
+import PersonAddIcon from "@mui/icons-material/PersonAdd";
 import MoreHorizIcon from "@mui/icons-material/MoreHoriz";
 import LogoutIcon from "@mui/icons-material/Logout";
 import SearchIcon from "@mui/icons-material/Search";
@@ -93,6 +93,7 @@ const ChatList = ({
     showChatList,
     currentFriend,
     fakeActiveUsers,
+    setAddFriendDialogOpen,
 }) => {
     const theme = useTheme();
 
@@ -199,8 +200,9 @@ const ChatList = ({
                                         : "grey.300",
                                 },
                             }}
+                            onClick={() => setAddFriendDialogOpen(true)}
                         >
-                            <CreateIcon />
+                            <PersonAddIcon />
                         </IconButton>
                     </Box>
                 </CLHeaderContent>

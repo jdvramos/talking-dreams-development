@@ -8,10 +8,12 @@ import {
     styled,
     useTheme,
     Drawer,
+    IconButton,
 } from "@mui/material";
 import FilterIcon from "@mui/icons-material/Filter";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import { useEffect, useState } from "react";
+import CloseIcon from "@mui/icons-material/Close";
 
 const FriendInfoMain = styled(Box)(({ theme }) => ({
     display: "flex",
@@ -39,7 +41,6 @@ const MediaContainer = styled(Stack)(({ theme }) => ({
     alignItems: "center",
     width: "95%",
     height: "100%",
-    // maxWidth: "500px",
     overflowY: "auto",
 }));
 
@@ -52,28 +53,46 @@ const NoMediaContainer = styled(Box)(({ theme }) => ({
     justifyContent: "center",
 }));
 
+const FullWidthDrawer = styled(Drawer)(({ theme }) => ({
+    width: "100%",
+    flexShrink: 0,
+    [`& .MuiDrawer-paper`]: {
+        backgroundColor: theme.palette.background.default,
+        backgroundImage: "none",
+        width: "100%",
+        boxSizing: "border-box",
+    },
+}));
+
 const DrawerBox = styled(Box)(({ theme }) => ({
     display: "flex",
     flexDirection: "column",
+    margin: "0 auto",
     alignItems: "center",
-    paddingTop: "20px",
-    width: "400px",
+    justifyContent: "center",
+    paddingTop: "70px",
+    minWidth: "320px",
+    width: "65%",
     height: "100%",
 }));
 
-const ChatInfoDrawer = ({
+const CustomIconButton = styled(IconButton)(({ theme }) => ({
+    position: "absolute",
+    top: "10px",
+    left: "8px",
+}));
+
+const ChatInfoDrawerMdBelow = ({
     currentFriend,
     currentMessages,
     isDarkMode,
     xlAbove,
-    chatInfoOpen,
-    setChatInfoOpen,
+    chatInfoState,
 }) => {
     const theme = useTheme();
 
     const [isMediaOpen, setIsMediaOpen] = useState(false);
     const [currentMediaMessages, setCurrentMediaMessages] = useState([]);
-
     const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
     useEffect(() => {
@@ -86,28 +105,26 @@ const ChatInfoDrawer = ({
     }, [currentMessages]);
 
     useEffect(() => {
-        console.log("isDrawerOpen: ", isDrawerOpen);
-    }, [isDrawerOpen]);
-
-    useEffect(() => {
-        if (chatInfoOpen) {
+        if (chatInfoState.chatInfoDrawerOpen) {
             setIsDrawerOpen(true);
         }
-    }, [chatInfoOpen]);
+    }, [chatInfoState]);
 
     const handleCloseDrawer = () => {
-        setChatInfoOpen(false);
         setIsDrawerOpen(false);
     };
 
     return (
-        <Drawer
+        <FullWidthDrawer
             variant="temporary"
             anchor="right"
             open={isDrawerOpen}
             onClose={handleCloseDrawer}
         >
             <DrawerBox>
+                <CustomIconButton onClick={handleCloseDrawer}>
+                    <CloseIcon />
+                </CustomIconButton>
                 <FriendInfoMain>
                     <Avatar
                         src={currentFriend?.userProfileImage}
@@ -214,8 +231,8 @@ const ChatInfoDrawer = ({
                         ))}
                 </MediaContainer>
             </DrawerBox>
-        </Drawer>
+        </FullWidthDrawer>
     );
 };
 
-export default ChatInfoDrawer;
+export default ChatInfoDrawerMdBelow;

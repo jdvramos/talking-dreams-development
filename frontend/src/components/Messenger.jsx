@@ -1,7 +1,17 @@
 import {
+    Autocomplete,
+    Avatar,
     Box,
+    Button,
+    Dialog,
+    DialogActions,
+    DialogContent,
+    DialogTitle,
     Grid,
+    Snackbar,
     Stack,
+    TextField,
+    Typography,
     styled,
     useMediaQuery,
     useTheme,
@@ -9,7 +19,8 @@ import {
 import ChatList from "./ChatList";
 import ChatBox from "./ChatBox";
 import ChatInfo from "./ChatInfo";
-import ChatInfoDrawer from "./ChatInfoDrawer";
+import ChatInfoDrawerMdOnly from "./ChatInfoDrawerMdOnly";
+import ChatInfoDrawerMdBelow from "./ChatInfoDrawerMdBelow";
 import { useEffect, useRef, useState } from "react";
 
 // FOR TESTING PURPOSES ONLY DELETE LATER
@@ -20,6 +31,7 @@ import {
     userId,
     fakeActiveUsers,
 } from "../fakedata/fakedata";
+import { fakeFriends } from "../fakedata/fakedata";
 
 const SideBar = styled(Box)(({ theme }) => ({
     display: "none",
@@ -59,6 +71,8 @@ const ChatInfoGridItem = styled(Grid)(({ theme }) => ({
     borderLeftWidth: "thin",
 }));
 
+const AddFriendDialog = styled(Dialog)(({ theme }) => ({}));
+
 const Messenger = ({ setMode }) => {
     const scrollRef = useRef();
 
@@ -70,6 +84,9 @@ const Messenger = ({ setMode }) => {
     const xlAbove = useMediaQuery(theme.breakpoints.up("xl"));
     const mdOnly = useMediaQuery(theme.breakpoints.only("md"));
 
+    const [friendToAdd, setFriendToAdd] = useState("");
+    const [friendRequestSent, setFriendRequestSent] = useState(false);
+
     const [showChatList, setShowChatList] = useState(true);
 
     const [message, setMessage] = useState("");
@@ -77,7 +94,12 @@ const Messenger = ({ setMode }) => {
     const [currentFriend, setCurrentFriend] = useState(null);
     const [currentMessages, setCurrentMessages] = useState([]);
 
-    const [chatInfoOpen, setChatInfoOpen] = useState(false);
+    const [chatInfoState, setChatInfoState] = useState({
+        chatInfoOpen: false,
+        chatInfoDrawerOpen: false,
+    });
+
+    const [addFriendDialogOpen, setAddFriendDialogOpen] = useState(false);
 
     const handleSelectCurrentFriend = (friendInfo) => {
         setCurrentFriend(friendInfo);
@@ -88,8 +110,9 @@ const Messenger = ({ setMode }) => {
     };
 
     useEffect(() => {
-        console.log("chatInfoOpen: ", chatInfoOpen);
-    }, [chatInfoOpen]);
+        console.log("chatInfoOpen: ", chatInfoState.chatInfoOpen);
+        console.log("chatInfoDrawerOpen: ", chatInfoState.chatInfoDrawerOpen);
+    }, [chatInfoState]);
 
     useEffect(() => {
         scrollRef.current?.scrollIntoView();
@@ -97,6 +120,13 @@ const Messenger = ({ setMode }) => {
 
     useEffect(() => {
         console.log("lgAbove", lgAbove);
+    }, [lgAbove]);
+
+    useEffect(() => {
+        setChatInfoState((prev) => ({
+            chatInfoOpen: prev.chatInfoOpen,
+            chatInfoDrawerOpen: false,
+        }));
     }, [lgAbove]);
 
     useEffect(() => {
@@ -124,10 +154,12 @@ const Messenger = ({ setMode }) => {
         }
         if (currentFriend) {
             setMessage("");
-            // setChatInfoOpen(true);
         }
         if (currentFriend === null) {
-            setChatInfoOpen(false);
+            setChatInfoState({
+                chatInfoOpen: false,
+                chatInfoDrawerOpen: false,
+            });
         }
     }, [currentFriend]);
 
@@ -154,6 +186,12 @@ const Messenger = ({ setMode }) => {
         setMessage(`${message}` + emoji);
     };
 
+    const handleAddFriend = () => {
+        console.log(friendToAdd);
+        setAddFriendDialogOpen(false);
+        setFriendRequestSent(true);
+    };
+
     return (
         <MessengerContainer direction="row">
             <SideBar></SideBar>
@@ -165,7 +203,8 @@ const Messenger = ({ setMode }) => {
                 showChatList={showChatList}
                 currentFriend={currentFriend}
                 fakeActiveUsers={fakeActiveUsers}
-            ></ChatList>
+                setAddFriendDialogOpen={setAddFriendDialogOpen}
+            />
             <Grid
                 display={showChatList && mdBelow ? "none" : "flex"}
                 flex={1}
@@ -174,9 +213,9 @@ const Messenger = ({ setMode }) => {
             >
                 <ChatBoxGridItem
                     item
-                    xs={chatInfoOpen && mdBelow ? 0 : 12}
+                    xs={12}
                     md={12}
-                    lg={chatInfoOpen && lgAbove ? 8 : 12}
+                    lg={chatInfoState.chatInfoOpen && lgAbove ? 8 : 12}
                 >
                     <ChatBox
                         currentFriend={currentFriend}
@@ -189,32 +228,11 @@ const Messenger = ({ setMode }) => {
                         message={message}
                         addEmoji={addEmoji}
                         fakeActiveUsers={fakeActiveUsers}
-                        setChatInfoOpen={setChatInfoOpen}
+                        setChatInfoState={setChatInfoState}
                         scrollRef={scrollRef}
                     />
                 </ChatBoxGridItem>
-                {/* <ChatBoxGridItem
-                    item
-                    xs={chatInfoOpen && mdBelow ? 0 : 12}
-                    md={chatInfoOpen && mdOnly ? null : 12}
-                    lg={chatInfoOpen && lgAbove ? 8 : 12}
-                >
-                    <ChatBox
-                        currentFriend={currentFriend}
-                        currentMessages={currentMessages}
-                        mdBelow={mdBelow}
-                        isDarkMode={isDarkMode}
-                        goBackToChatList={goBackToChatList}
-                        userId={userId}
-                        handleMessageChange={handleMessageChange}
-                        message={message}
-                        addEmoji={addEmoji}
-                        fakeActiveUsers={fakeActiveUsers}
-                        setChatInfoOpen={setChatInfoOpen}
-                        scrollRef={scrollRef}
-                    />
-                </ChatBoxGridItem> */}
-                {/* {chatInfoOpen && lgAbove && (
+                {chatInfoState.chatInfoOpen && lgAbove && (
                     <ChatInfoGridItem item lg={4}>
                         <ChatInfo
                             currentFriend={currentFriend}
@@ -223,42 +241,94 @@ const Messenger = ({ setMode }) => {
                             xlAbove={xlAbove}
                         />
                     </ChatInfoGridItem>
-                )} */}
-                {chatInfoOpen && (
-                    <>
-                        {lgAbove && (
-                            <ChatInfoGridItem item lg={4}>
-                                <ChatInfo
-                                    currentFriend={currentFriend}
-                                    currentMessages={currentMessages}
-                                    isDarkMode={isDarkMode}
-                                    xlAbove={xlAbove}
-                                />
-                            </ChatInfoGridItem>
-                        )}
-                        {mdOnly && (
-                            <ChatInfoDrawer
-                                currentFriend={currentFriend}
-                                currentMessages={currentMessages}
-                                isDarkMode={isDarkMode}
-                                xlAbove={xlAbove}
-                                chatInfoOpen={chatInfoOpen}
-                                setChatInfoOpen={setChatInfoOpen}
-                            />
-                        )}
-                        {mdBelow && (
-                            <ChatInfoGridItem item xs={12}>
-                                <ChatInfo
-                                    currentFriend={currentFriend}
-                                    currentMessages={currentMessages}
-                                    isDarkMode={isDarkMode}
-                                    xlAbove={xlAbove}
-                                />
-                            </ChatInfoGridItem>
-                        )}
-                    </>
+                )}
+                {chatInfoState.chatInfoDrawerOpen && mdOnly && (
+                    <ChatInfoDrawerMdOnly
+                        currentFriend={currentFriend}
+                        currentMessages={currentMessages}
+                        isDarkMode={isDarkMode}
+                        xlAbove={xlAbove}
+                        chatInfoState={chatInfoState}
+                    />
+                )}
+                {chatInfoState.chatInfoDrawerOpen && mdBelow && (
+                    <ChatInfoDrawerMdBelow
+                        currentFriend={currentFriend}
+                        currentMessages={currentMessages}
+                        isDarkMode={isDarkMode}
+                        xlAbove={xlAbove}
+                        chatInfoState={chatInfoState}
+                    />
                 )}
             </Grid>
+            <AddFriendDialog
+                open={addFriendDialogOpen}
+                onClose={() => setAddFriendDialogOpen(false)}
+                fullWidth
+            >
+                <DialogTitle id="dialog-title">Add a friend</DialogTitle>
+                <DialogContent>
+                    <Typography>Please enter a name:</Typography>
+                    <Autocomplete
+                        size="small"
+                        options={fakeFriends}
+                        onChange={(_event, newValue) =>
+                            setFriendToAdd(newValue)
+                        }
+                        getOptionLabel={(option) =>
+                            `${option?.friendInfo?.firstName} ${option?.friendInfo?.lastName}`
+                        }
+                        renderOption={(props, option) => (
+                            <Box component="li" {...props}>
+                                <Avatar
+                                    src={option?.friendInfo?.userProfileImage}
+                                    alt={`${option?.friendInfo?.firstName} ${option?.friendInfo?.lastName}`}
+                                    sx={{
+                                        marginRight: "15px",
+                                        width: "50px",
+                                        height: "50px",
+                                    }}
+                                />
+                                <Stack>
+                                    <Typography
+                                        fontWeight={500}
+                                    >{`${option?.friendInfo?.firstName} ${option?.friendInfo?.lastName}`}</Typography>
+                                    <Typography variant="caption">
+                                        {option?.friendInfo?.email}
+                                    </Typography>
+                                </Stack>
+                            </Box>
+                        )}
+                        renderInput={(params) => (
+                            <TextField
+                                {...params}
+                                inputProps={{
+                                    ...params.inputProps,
+                                    autoComplete: "new-password", // disable autocomplete and autofill
+                                }}
+                            />
+                        )}
+                    ></Autocomplete>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={() => setAddFriendDialogOpen(false)}>
+                        Cancel
+                    </Button>
+                    <Button onClick={handleAddFriend} autoFocus>
+                        Add
+                    </Button>
+                </DialogActions>
+            </AddFriendDialog>
+            <Snackbar
+                open={friendRequestSent}
+                onClose={() => setFriendRequestSent(false)}
+                message="Friend request sent successfully!"
+                autoHideDuration={4000}
+                anchorOrigin={{
+                    vertical: "bottom",
+                    horizontal: "left",
+                }}
+            ></Snackbar>
         </MessengerContainer>
     );
 };

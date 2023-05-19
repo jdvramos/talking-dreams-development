@@ -1210,3 +1210,59 @@ export const fakeFriends = [
         },
     },
 ];
+
+const fakeFriendRequestSent = [
+    {
+        _id: "10",
+        firstName: "Saul",
+        lastName: "Goodman",
+        email: "saulgoodman@gmail.com",
+        userProfileImage:
+            "https://res.cloudinary.com/dkkcgnkep/image/upload/v1683349951/nxbrqywajxpgm9jzblwz.png",
+        created_at: "",
+        updated_at: "",
+    },
+    {
+        _id: "11",
+        firstName: "Kim",
+        lastName: "Wexler",
+        email: "kimwexler@gmail.com",
+        userProfileImage:
+            "https://res.cloudinary.com/dkkcgnkep/image/upload/v1683365247/pkjr7u2eyndcfx41jsvq.png",
+        created_at: "",
+        updated_at: "",
+    },
+    {
+        _id: "12",
+        firstName: "Lalo",
+        lastName: "Salamanca",
+        email: "lalosalamanca@gmail.com",
+        userProfileImage:
+            "https://res.cloudinary.com/dkkcgnkep/image/upload/v1683522756/gkbssjdzgynfpfixe6ss.png",
+        created_at: "",
+        updated_at: "",
+    },
+];
+
+const fakeFriendRequestReceived = [
+    {
+        _id: "13",
+        firstName: "Walter",
+        lastName: "White",
+        email: "walterwhite@gmail.com",
+        userProfileImage:
+            "https://res.cloudinary.com/dkkcgnkep/image/upload/v1683787150/ugbsrtmlf4wdgv7cnat6.png",
+        created_at: "",
+        updated_at: "",
+    },
+    {
+        _id: "14",
+        firstName: "Jesse",
+        lastName: "Pinkman",
+        email: "jessepinkman@gmail.com",
+        userProfileImage:
+            "https://res.cloudinary.com/dkkcgnkep/image/upload/v1683787221/sfsbboxts77ear5cc4gu.png",
+        created_at: "",
+        updated_at: "",
+    },
+];

@@ -111,7 +111,7 @@ const ChatBox = ({
     message,
     addEmoji,
     fakeActiveUsers,
-    setChatInfoOpen,
+    setChatInfoState,
     scrollRef,
 }) => {
     const theme = useTheme();
@@ -198,7 +198,12 @@ const ChatBox = ({
                         <IconButton
                             aria-label="more info"
                             sx={{ color: "#1976d2", marginRight: 1 }}
-                            onClick={() => setChatInfoOpen((prev) => !prev)}
+                            onClick={() =>
+                                setChatInfoState((prev) => ({
+                                    chatInfoOpen: !prev.chatInfoOpen,
+                                    chatInfoDrawerOpen: true,
+                                }))
+                            }
                         >
                             <InfoIcon />
                         </IconButton>

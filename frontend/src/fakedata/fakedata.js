@@ -1,5 +1,16 @@
 export const userId = "1";
 
+export const fakeUser = {
+    _id: "1",
+    firstName: "Jaydee",
+    lastName: "Ramos",
+    email: "jaydeeramos@gmail.com",
+    userProfileImage:
+        "https://res.cloudinary.com/dkkcgnkep/image/upload/v1684493395/aremynet63dcu940seyz.jpg",
+    created_at: "",
+    updated_at: "",
+};
+
 export const fakeMessagesSaul = [
     {
         _id: "1",
@@ -1211,7 +1222,7 @@ export const fakeFriends = [
     },
 ];
 
-const fakeFriendRequestSent = [
+export const fakeFriendRequestSent = [
     {
         _id: "10",
         firstName: "Saul",
@@ -1244,7 +1255,7 @@ const fakeFriendRequestSent = [
     },
 ];
 
-const fakeFriendRequestReceived = [
+export const fakeFriendRequestReceived = [
     {
         _id: "13",
         firstName: "Walter",

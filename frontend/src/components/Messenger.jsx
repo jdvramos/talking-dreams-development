@@ -1,24 +1,10 @@
-import {
-    Autocomplete,
-    Avatar,
-    Box,
-    Button,
-    Dialog,
-    DialogActions,
-    DialogContent,
-    DialogTitle,
-    Grid,
-    Snackbar,
-    Stack,
-    TextField,
-    Typography,
-    styled,
-    useMediaQuery,
-    useTheme,
-} from "@mui/material";
+import { Grid, Stack, styled, useMediaQuery, useTheme } from "@mui/material";
+import Sidebar from "./Sidebar";
 import ChatList from "./ChatList";
 import ChatBox from "./ChatBox";
 import ChatInfo from "./ChatInfo";
+import AddFriendDialog from "./AddFriendDialog";
+import FriendRequestSentSnackbar from "./FriendRequestSentSnackbar";
 import ChatInfoDrawerMdOnly from "./ChatInfoDrawerMdOnly";
 import ChatInfoDrawerMdBelow from "./ChatInfoDrawerMdBelow";
 import { useEffect, useRef, useState } from "react";
@@ -28,22 +14,12 @@ import {
     fakeMessagesKim,
     fakeMessagesLalo,
     fakeMessagesSaul,
-    userId,
     fakeActiveUsers,
+    fakeUser,
+    fakeFriendRequestSent,
+    fakeFriendRequestReceived,
 } from "../fakedata/fakedata";
 import { fakeFriends } from "../fakedata/fakedata";
-
-const SideBar = styled(Box)(({ theme }) => ({
-    display: "none",
-    [theme.breakpoints.up("md")]: {
-        display: "block",
-        width: "60px",
-        borderWidth: 0,
-        borderStyle: "solid",
-        borderColor: theme.palette.divider,
-        borderRightWidth: "thin",
-    },
-}));
 
 const MessengerContainer = styled(Stack)(({ theme }) => ({
     height: "100%",
@@ -70,8 +46,6 @@ const ChatInfoGridItem = styled(Grid)(({ theme }) => ({
     borderColor: theme.palette.divider,
     borderLeftWidth: "thin",
 }));
-
-const AddFriendDialog = styled(Dialog)(({ theme }) => ({}));
 
 const Messenger = ({ setMode }) => {
     const scrollRef = useRef();
@@ -194,7 +168,7 @@ const Messenger = ({ setMode }) => {
 
     return (
         <MessengerContainer direction="row">
-            <SideBar></SideBar>
+            <Sidebar fakeUser={fakeUser} mdBelow={mdBelow} />
             <ChatList
                 handleSelectCurrentFriend={handleSelectCurrentFriend}
                 setMode={setMode}
@@ -213,7 +187,7 @@ const Messenger = ({ setMode }) => {
             >
                 <ChatBoxGridItem
                     item
-                    xs={12}
+                    xs={12} // <- includes sm
                     md={12}
                     lg={chatInfoState.chatInfoOpen && lgAbove ? 8 : 12}
                 >
@@ -223,7 +197,7 @@ const Messenger = ({ setMode }) => {
                         mdBelow={mdBelow}
                         isDarkMode={isDarkMode}
                         goBackToChatList={goBackToChatList}
-                        userId={userId}
+                        userId={fakeUser._id}
                         handleMessageChange={handleMessageChange}
                         message={message}
                         addEmoji={addEmoji}
@@ -262,73 +236,16 @@ const Messenger = ({ setMode }) => {
                 )}
             </Grid>
             <AddFriendDialog
-                open={addFriendDialogOpen}
-                onClose={() => setAddFriendDialogOpen(false)}
-                fullWidth
-            >
-                <DialogTitle id="dialog-title">Add a friend</DialogTitle>
-                <DialogContent>
-                    <Typography>Please enter a name:</Typography>
-                    <Autocomplete
-                        size="small"
-                        options={fakeFriends}
-                        onChange={(_event, newValue) =>
-                            setFriendToAdd(newValue)
-                        }
-                        getOptionLabel={(option) =>
-                            `${option?.friendInfo?.firstName} ${option?.friendInfo?.lastName}`
-                        }
-                        renderOption={(props, option) => (
-                            <Box component="li" {...props}>
-                                <Avatar
-                                    src={option?.friendInfo?.userProfileImage}
-                                    alt={`${option?.friendInfo?.firstName} ${option?.friendInfo?.lastName}`}
-                                    sx={{
-                                        marginRight: "15px",
-                                        width: "50px",
-                                        height: "50px",
-                                    }}
-                                />
-                                <Stack>
-                                    <Typography
-                                        fontWeight={500}
-                                    >{`${option?.friendInfo?.firstName} ${option?.friendInfo?.lastName}`}</Typography>
-                                    <Typography variant="caption">
-                                        {option?.friendInfo?.email}
-                                    </Typography>
-                                </Stack>
-                            </Box>
-                        )}
-                        renderInput={(params) => (
-                            <TextField
-                                {...params}
-                                inputProps={{
-                                    ...params.inputProps,
-                                    autoComplete: "new-password", // disable autocomplete and autofill
-                                }}
-                            />
-                        )}
-                    ></Autocomplete>
-                </DialogContent>
-                <DialogActions>
-                    <Button onClick={() => setAddFriendDialogOpen(false)}>
-                        Cancel
-                    </Button>
-                    <Button onClick={handleAddFriend} autoFocus>
-                        Add
-                    </Button>
-                </DialogActions>
-            </AddFriendDialog>
-            <Snackbar
-                open={friendRequestSent}
-                onClose={() => setFriendRequestSent(false)}
-                message="Friend request sent successfully!"
-                autoHideDuration={4000}
-                anchorOrigin={{
-                    vertical: "bottom",
-                    horizontal: "left",
-                }}
-            ></Snackbar>
+                fakeFriends={fakeFriends}
+                addFriendDialogOpen={addFriendDialogOpen}
+                setAddFriendDialogOpen={setAddFriendDialogOpen}
+                setFriendToAdd={setFriendToAdd}
+                handleAddFriend={handleAddFriend}
+            />
+            <FriendRequestSentSnackbar
+                friendRequestSent={friendRequestSent}
+                setFriendRequestSent={setFriendRequestSent}
+            />
         </MessengerContainer>
     );
 };

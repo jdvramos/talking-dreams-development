@@ -16,6 +16,7 @@ import {
 
 import DarkModeIcon from "@mui/icons-material/DarkMode";
 import PersonAddIcon from "@mui/icons-material/PersonAdd";
+import PeopleIcon from "@mui/icons-material/People";
 import MoreHorizIcon from "@mui/icons-material/MoreHoriz";
 import LogoutIcon from "@mui/icons-material/Logout";
 import SearchIcon from "@mui/icons-material/Search";
@@ -188,6 +189,25 @@ const ChatList = ({
                                 <ListItemText>Sign out</ListItemText>
                             </MenuItem>
                         </Menu>
+                        {mdBelow && (
+                            <IconButton
+                                id="view-friends-btn"
+                                size="small"
+                                sx={{
+                                    backgroundColor: isDarkMode
+                                        ? "grey.800"
+                                        : "grey.200",
+                                    marginRight: "13px",
+                                    "&:hover": {
+                                        backgroundColor: isDarkMode
+                                            ? "grey.700"
+                                            : "grey.300",
+                                    },
+                                }}
+                            >
+                                <PeopleIcon />
+                            </IconButton>
+                        )}
                         <IconButton
                             size="small"
                             sx={{

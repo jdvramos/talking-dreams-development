@@ -220,7 +220,7 @@ const Friend = ({
                 {latestMessage?.senderId === userId &&
                     latestMessage?.status === "delivered" && (
                         <CheckCircleIcon
-                            sx={{ color: "grey.600", fontSize: "12px" }}
+                            sx={{ color: "grey.600", fontSize: "13px" }}
                         />
                     )}
                 {latestMessage?.senderId === userId &&
@@ -234,14 +234,14 @@ const Friend = ({
                 {latestMessage?.senderId === friendId &&
                     latestMessage?.status === "delivered" && (
                         <CircleIcon
-                            sx={{ color: "#1976d2", fontSize: "12px" }}
+                            sx={{ color: "#1976d2", fontSize: "13px" }}
                         />
                     )}
                 {latestMessage?.senderId === friendId &&
                     latestMessage?.status === "seen" && (
                         <CircleIcon
                             color="primary"
-                            sx={{ fontSize: "12px", opacity: 0 }}
+                            sx={{ fontSize: "13px", opacity: 0 }}
                         />
                     )}
             </MessageStatus>

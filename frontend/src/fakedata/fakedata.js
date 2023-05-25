@@ -1253,6 +1253,16 @@ export const fakeFriendRequestSent = [
         created_at: "",
         updated_at: "",
     },
+    {
+        _id: "13",
+        firstName: "Walter",
+        lastName: "White",
+        email: "walterwhite@gmail.com",
+        userProfileImage:
+            "https://res.cloudinary.com/dkkcgnkep/image/upload/v1683787150/ugbsrtmlf4wdgv7cnat6.png",
+        created_at: "",
+        updated_at: "",
+    },
 ];
 
 export const fakeFriendRequestReceived = [

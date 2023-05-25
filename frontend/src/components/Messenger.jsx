@@ -7,6 +7,7 @@ import AddFriendDialog from "./AddFriendDialog";
 import FriendRequestSentSnackbar from "./FriendRequestSentSnackbar";
 import ChatInfoDrawerMdOnly from "./ChatInfoDrawerMdOnly";
 import ChatInfoDrawerMdBelow from "./ChatInfoDrawerMdBelow";
+import ViewFriendsDialog from "./ViewFriendsDialog";
 import { useEffect, useRef, useState } from "react";
 
 // FOR TESTING PURPOSES ONLY DELETE LATER
@@ -74,6 +75,7 @@ const Messenger = ({ setMode }) => {
     });
 
     const [addFriendDialogOpen, setAddFriendDialogOpen] = useState(false);
+    const [viewFriendsDialogOpen, setViewFriendsDialogOpen] = useState(false);
 
     const handleSelectCurrentFriend = (friendInfo) => {
         setCurrentFriend(friendInfo);
@@ -168,7 +170,11 @@ const Messenger = ({ setMode }) => {
 
     return (
         <MessengerContainer direction="row">
-            <Sidebar fakeUser={fakeUser} mdBelow={mdBelow} />
+            <Sidebar
+                fakeUser={fakeUser}
+                mdBelow={mdBelow}
+                setViewFriendsDialogOpen={setViewFriendsDialogOpen}
+            />
             <ChatList
                 handleSelectCurrentFriend={handleSelectCurrentFriend}
                 setMode={setMode}
@@ -178,6 +184,7 @@ const Messenger = ({ setMode }) => {
                 currentFriend={currentFriend}
                 fakeActiveUsers={fakeActiveUsers}
                 setAddFriendDialogOpen={setAddFriendDialogOpen}
+                setViewFriendsDialogOpen={setViewFriendsDialogOpen}
             />
             <Grid
                 display={showChatList && mdBelow ? "none" : "flex"}
@@ -235,12 +242,20 @@ const Messenger = ({ setMode }) => {
                     />
                 )}
             </Grid>
+            {/* modals and alerts */}
             <AddFriendDialog
                 fakeFriends={fakeFriends}
                 addFriendDialogOpen={addFriendDialogOpen}
                 setAddFriendDialogOpen={setAddFriendDialogOpen}
                 setFriendToAdd={setFriendToAdd}
                 handleAddFriend={handleAddFriend}
+            />
+            <ViewFriendsDialog
+                fakeFriendRequestSent={fakeFriendRequestSent}
+                fakeFriendRequestReceived={fakeFriendRequestReceived}
+                viewFriendsDialogOpen={viewFriendsDialogOpen}
+                setViewFriendsDialogOpen={setViewFriendsDialogOpen}
+                isDarkMode={isDarkMode}
             />
             <FriendRequestSentSnackbar
                 friendRequestSent={friendRequestSent}

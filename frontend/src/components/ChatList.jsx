@@ -95,6 +95,7 @@ const ChatList = ({
     currentFriend,
     fakeActiveUsers,
     setAddFriendDialogOpen,
+    setViewFriendsDialogOpen,
 }) => {
     const theme = useTheme();
 
@@ -204,6 +205,7 @@ const ChatList = ({
                                             : "grey.300",
                                     },
                                 }}
+                                onClick={() => setViewFriendsDialogOpen(true)}
                             >
                                 <PeopleIcon />
                             </IconButton>

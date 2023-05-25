@@ -49,12 +49,15 @@ const StyledBadge = styled(Badge)(({ theme }) => ({
     },
 }));
 
-const Sidebar = ({ fakeUser, mdBelow }) => {
+const Sidebar = ({ fakeUser, mdBelow, setViewFriendsDialogOpen }) => {
     return (
         <SideBarMain display={mdBelow ? "none" : "flex"}>
             <UpperIconButtonContainer>
                 <Tooltip title="Friends" placement="right">
-                    <IconButtonRounded size="large">
+                    <IconButtonRounded
+                        size="large"
+                        onClick={() => setViewFriendsDialogOpen(true)}
+                    >
                         <PeopleIcon />
                     </IconButtonRounded>
                 </Tooltip>

@@ -10,6 +10,9 @@ const cookieParser = require("cookie-parser");
 const corsOptions = require("./config/corsOptions");
 const credentials = require("./middleware/credentials");
 const authRoutes = require("./routes/authRoutes");
+const messengerRoutes = require("./routes/messengerRoutes");
+const refreshRoute = require("./routes/refreshRoute");
+const verifyAccessToken = require("./middleware/verifyAccessToken");
 const connectDB = require("./db/connectDB");
 const errorHandlerMiddleware = require("./middleware/error-handler");
 
@@ -22,11 +25,16 @@ app.use(cors(corsOptions));
 // To parse req.body
 app.use(bodyParser.json());
 
+// To parse cookies
+app.use(cookieParser());
+
 // Auth route
 app.use("/api/v1/auth", authRoutes);
 
-// To parse cookies
-app.use(cookieParser());
+// Refresh route (uses refresh token to get new access token)
+app.use("/api/v1/get-new-access-token", refreshRoute);
+
+app.use("/api/v1/messenger", verifyAccessToken, messengerRoutes);
 
 // To handle async errors in all controllers
 app.use(errorHandlerMiddleware);

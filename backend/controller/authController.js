@@ -51,6 +51,7 @@ module.exports.registerUser = async (req, res) => {
 
     res.status(StatusCodes.CREATED).json({
         userInfo: {
+            id: user._id,
             firstName,
             lastName,
             email,
@@ -99,6 +100,7 @@ module.exports.loginUser = async (req, res) => {
 
     res.status(StatusCodes.OK).json({
         userInfo: {
+            id: user._id,
             firstName: user.firstName,
             lastName: user.lastName,
             email: user.email,

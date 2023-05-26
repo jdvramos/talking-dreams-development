@@ -18,7 +18,7 @@ import FilterDramaIcon from "@mui/icons-material/FilterDrama";
 import AddIcon from "@mui/icons-material/Add";
 import KeyboardBackspaceIcon from "@mui/icons-material/KeyboardBackspace";
 import isEmail from "validator/lib/isEmail";
-import { Link as RouterLink } from "react-router-dom";
+import { Link as RouterLink, useNavigate } from "react-router-dom";
 import { useState, useEffect, useRef } from "react";
 import { useDispatch } from "react-redux";
 import { registerUser, uploadImageToCloudinary } from "../features/authSlice";
@@ -105,6 +105,8 @@ const Register = () => {
     const signupDetailBoxRef = useRef();
 
     const dispatch = useDispatch();
+
+    const navigate = useNavigate();
 
     const [showAddPhoto, setShowAddPhoto] = useState(false);
 
@@ -319,6 +321,7 @@ const Register = () => {
             console.log(result);
             setSuccess(true);
             // Clear the input fields by setting the state of user, pwd, matchPwd to empty string
+            navigate("/");
         } catch (err) {
             const { status, message } = err;
 

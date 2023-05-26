@@ -109,3 +109,31 @@ module.exports.loginUser = async (req, res) => {
         userProfileImage: user.userProfileImage,
     });
 };
+
+module.exports.logoutUser = async (req, res) => {
+    const cookies = req.cookies;
+
+    if (!cookies?.jwt) {
+        return res.sendStatus(StatusCodes.NO_CONTENT);
+    }
+
+    const refreshToken = cookies.jwt;
+
+    const foundUser = await User.findOne({ refreshToken });
+    if (!foundUser) {
+        // If there's no such user in the db with that refreshToken that we got but the client has cookie named 'jwt' we clear that anyway
+        res.clearCookie("jwt", {
+            httpOnly: true,
+            sameSite: "None",
+            secure: true,
+        });
+        return res.sendStatus(StatusCodes.NO_CONTENT);
+    }
+
+    // Delete the refreshToken of the user in db
+    foundUser.refreshToken = "";
+    const result = await foundUser.save();
+
+    res.clearCookie("jwt", { httpOnly: true, sameSite: "None", secure: true });
+    res.sendStatus(StatusCodes.NO_CONTENT);
+};

@@ -8,10 +8,14 @@ import FriendRequestSentSnackbar from "./FriendRequestSentSnackbar";
 import ChatInfoDrawerMdOnly from "./ChatInfoDrawerMdOnly";
 import ChatInfoDrawerMdBelow from "./ChatInfoDrawerMdBelow";
 import ViewFriendsDialog from "./ViewFriendsDialog";
+import { useNavigate } from "react-router-dom";
+import { logoutUser } from "../features/authSlice";
+import { useDispatch } from "react-redux";
 import { useEffect, useRef, useState } from "react";
 
 // FOR TESTING PURPOSES ONLY DELETE LATER
 import {
+    fakeFriends,
     fakeMessagesKim,
     fakeMessagesLalo,
     fakeMessagesSaul,
@@ -20,7 +24,6 @@ import {
     fakeFriendRequestSent,
     fakeFriendRequestReceived,
 } from "../fakedata/fakedata";
-import { fakeFriends } from "../fakedata/fakedata";
 
 const MessengerContainer = styled(Stack)(({ theme }) => ({
     height: "100%",
@@ -50,6 +53,10 @@ const ChatInfoGridItem = styled(Grid)(({ theme }) => ({
 
 const Messenger = ({ setMode }) => {
     const scrollRef = useRef();
+
+    const navigate = useNavigate();
+
+    const dispatch = useDispatch();
 
     const theme = useTheme();
     const isDarkMode = theme.palette.mode === "dark";
@@ -168,11 +175,17 @@ const Messenger = ({ setMode }) => {
         setFriendRequestSent(true);
     };
 
+    const handleLogout = async () => {
+        await dispatch(logoutUser());
+        navigate("/login");
+    };
+
     return (
         <MessengerContainer direction="row">
             <Sidebar
                 fakeUser={fakeUser}
                 mdBelow={mdBelow}
+                handleLogout={handleLogout}
                 setViewFriendsDialogOpen={setViewFriendsDialogOpen}
             />
             <ChatList
@@ -183,6 +196,7 @@ const Messenger = ({ setMode }) => {
                 showChatList={showChatList}
                 currentFriend={currentFriend}
                 fakeActiveUsers={fakeActiveUsers}
+                handleLogout={handleLogout}
                 setAddFriendDialogOpen={setAddFriendDialogOpen}
                 setViewFriendsDialogOpen={setViewFriendsDialogOpen}
             />

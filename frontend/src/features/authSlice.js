@@ -10,7 +10,9 @@ const initialState = {
 
 const LOGIN_URL = "/api/v1/auth/login";
 const REGISTER_URL = "/api/v1/auth/register";
+const LOGOUT_URL = "/api/v1/auth/logout";
 const CLOUDINARY_URL = "https://api.cloudinary.com/v1_1/dkkcgnkep/image/upload";
+const PERSIST_URL = "/api/v1/persist";
 
 export const loginUser = createAsyncThunk(
     "auth/loginUser",
@@ -58,6 +60,23 @@ export const registerUser = createAsyncThunk(
     }
 );
 
+export const logoutUser = createAsyncThunk(
+    "auth/logoutUser",
+    async (_, { rejectWithValue }) => {
+        try {
+            const response = await axios.get(LOGOUT_URL, {
+                withCredentials: true,
+            });
+            return response.data;
+        } catch (error) {
+            console.log(error);
+            throw rejectWithValue({
+                status: error.response.status,
+            });
+        }
+    }
+);
+
 export const uploadImageToCloudinary = createAsyncThunk(
     "auth/uploadImageToCloudinary",
     async (imageData, { rejectWithValue }) => {
@@ -71,6 +90,23 @@ export const uploadImageToCloudinary = createAsyncThunk(
             throw rejectWithValue({
                 status: error.response.status,
                 message: error.response.data.msg,
+            });
+        }
+    }
+);
+
+export const accessPersistRoute = createAsyncThunk(
+    "auth/accessPersistRoute",
+    async (_, { rejectWithValue }) => {
+        try {
+            const response = await axios.get(PERSIST_URL, {
+                withCredentials: true,
+            });
+            return response.data;
+        } catch (error) {
+            console.log(error);
+            throw rejectWithValue({
+                status: error.response.status,
             });
         }
     }
@@ -91,8 +127,21 @@ const authSlice = createSlice({
                 state.userInfo = action.payload.userInfo;
                 state.accessToken = action.payload.accessToken;
                 state.userProfileImage = action.payload.userProfileImage;
+            })
+            .addCase(logoutUser.fulfilled, (state, action) => {
+                state.userInfo = {};
+                state.accessToken = "";
+                state.userProfileImage = "";
+            })
+            .addCase(accessPersistRoute.fulfilled, (state, action) => {
+                state.userInfo = action.payload.userInfo;
+                state.accessToken = action.payload.accessToken;
+                state.userProfileImage = action.payload.userProfileImage;
             });
     },
 });
+
+export const getUserInfo = (state) => state.auth.userInfo;
+export const getAccessToken = (state) => state.auth.accessToken;
 
 export default authSlice.reducer;

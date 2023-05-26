@@ -94,6 +94,7 @@ const ChatList = ({
     showChatList,
     currentFriend,
     fakeActiveUsers,
+    handleLogout,
     setAddFriendDialogOpen,
     setViewFriendsDialogOpen,
 }) => {
@@ -183,7 +184,7 @@ const ChatList = ({
                                 ></Switch>
                             </MenuItem>
                             <Divider />
-                            <MenuItem onClick={handleCloseMenu}>
+                            <MenuItem onClick={handleLogout}>
                                 <ListItemIcon>
                                     <LogoutIcon fontSize="small" />
                                 </ListItemIcon>

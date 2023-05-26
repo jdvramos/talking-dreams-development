@@ -11,6 +11,7 @@ const corsOptions = require("./config/corsOptions");
 const credentials = require("./middleware/credentials");
 const authRoutes = require("./routes/authRoutes");
 const messengerRoutes = require("./routes/messengerRoutes");
+const persistRoute = require("./routes/persistRoute");
 const refreshRoute = require("./routes/refreshRoute");
 const verifyAccessToken = require("./middleware/verifyAccessToken");
 const connectDB = require("./db/connectDB");
@@ -31,8 +32,11 @@ app.use(cookieParser());
 // Auth route
 app.use("/api/v1/auth", authRoutes);
 
+// Persist route (much like the refresh route but instead of just returning the access token, it also returns the userInfo and the userProfileImage)
+app.use("/api/v1/persist", persistRoute);
+
 // Refresh route (uses refresh token to get new access token)
-app.use("/api/v1/get-new-access-token", refreshRoute);
+app.use("/api/v1/refresh", refreshRoute);
 
 app.use("/api/v1/messenger", verifyAccessToken, messengerRoutes);
 

@@ -11,7 +11,7 @@ import {
     AlertTitle,
 } from "@mui/material";
 import FilterDramaIcon from "@mui/icons-material/FilterDrama";
-import { Link as RouterLink } from "react-router-dom";
+import { Link as RouterLink, useNavigate } from "react-router-dom";
 import { useState, useEffect, useRef } from "react";
 import { useDispatch } from "react-redux";
 import { loginUser } from "../features/authSlice";
@@ -41,6 +41,8 @@ const Login = () => {
 
     const dispatch = useDispatch();
 
+    const navigate = useNavigate();
+
     const [email, setEmail] = useState("");
     const [pwd, setPwd] = useState("");
     const [errTitle, setErrTitle] = useState("");
@@ -64,7 +66,7 @@ const Login = () => {
             setEmail("");
             setPwd("");
             setSuccess(true);
-            // navigate("/");
+            navigate("/");
         } catch (err) {
             const { status, message } = err;
 

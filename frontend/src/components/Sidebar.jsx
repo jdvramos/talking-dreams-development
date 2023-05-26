@@ -10,8 +10,8 @@ import PeopleIcon from "@mui/icons-material/People";
 import LogoutIcon from "@mui/icons-material/Logout";
 
 const SideBarMain = styled(Stack)(({ theme }) => ({
-    marginTop: "10px",
-    marginBottom: "15px",
+    paddingTop: "10px",
+    paddingBottom: "15px",
     width: "60px",
     alignItems: "center",
     justifyContent: "space-between",
@@ -49,7 +49,12 @@ const StyledBadge = styled(Badge)(({ theme }) => ({
     },
 }));
 
-const Sidebar = ({ fakeUser, mdBelow, setViewFriendsDialogOpen }) => {
+const Sidebar = ({
+    fakeUser,
+    mdBelow,
+    handleLogout,
+    setViewFriendsDialogOpen,
+}) => {
     return (
         <SideBarMain display={mdBelow ? "none" : "flex"}>
             <UpperIconButtonContainer>
@@ -62,7 +67,7 @@ const Sidebar = ({ fakeUser, mdBelow, setViewFriendsDialogOpen }) => {
                     </IconButtonRounded>
                 </Tooltip>
                 <Tooltip title="Sign out" placement="right">
-                    <IconButtonRounded size="large" color="error.">
+                    <IconButtonRounded size="large" onClick={handleLogout}>
                         <LogoutIcon />
                     </IconButtonRounded>
                 </Tooltip>

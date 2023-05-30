@@ -20,6 +20,7 @@ import PeopleIcon from "@mui/icons-material/People";
 import MoreHorizIcon from "@mui/icons-material/MoreHoriz";
 import LogoutIcon from "@mui/icons-material/Logout";
 import SearchIcon from "@mui/icons-material/Search";
+import RefreshIcon from "@mui/icons-material/Refresh";
 import Friend from "./Friend";
 import { useEffect, useState } from "react";
 
@@ -97,6 +98,7 @@ const ChatList = ({
     handleLogout,
     setAddFriendDialogOpen,
     setViewFriendsDialogOpen,
+    dispatchLoadFriends,
 }) => {
     const theme = useTheme();
 
@@ -145,6 +147,23 @@ const ChatList = ({
                         Chats
                     </Typography>
                     <Box pr="20px">
+                        <IconButton
+                            size="small"
+                            sx={{
+                                backgroundColor: isDarkMode
+                                    ? "grey.800"
+                                    : "grey.200",
+                                marginRight: "13px",
+                                "&:hover": {
+                                    backgroundColor: isDarkMode
+                                        ? "grey.700"
+                                        : "grey.300",
+                                },
+                            }}
+                            onClick={() => dispatchLoadFriends()}
+                        >
+                            <RefreshIcon />
+                        </IconButton>
                         <IconButton
                             id="menu-btn"
                             onClick={handleClickMenu}

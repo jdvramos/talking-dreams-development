@@ -10,6 +10,9 @@ import ChatInfoDrawerMdBelow from "./ChatInfoDrawerMdBelow";
 import ViewFriendsDialog from "./ViewFriendsDialog";
 import { useNavigate } from "react-router-dom";
 import { logoutUser } from "../features/authSlice";
+import { resetAllState } from "../features/resetAllState";
+import { loadFriends } from "../features/messengerSlice";
+import useAxiosPrivate from "../hooks/useAxiosPrivate";
 import { useDispatch } from "react-redux";
 import { useEffect, useRef, useState } from "react";
 
@@ -52,7 +55,11 @@ const ChatInfoGridItem = styled(Grid)(({ theme }) => ({
 }));
 
 const Messenger = ({ setMode }) => {
+    const GET_FRIENDS_URL = "/api/v1/messenger/get-friends";
+
     const scrollRef = useRef();
+
+    const axiosPrivate = useAxiosPrivate();
 
     const navigate = useNavigate();
 
@@ -91,6 +98,23 @@ const Messenger = ({ setMode }) => {
             setShowChatList(false);
         }
     };
+
+    const dispatchLoadFriends = async () => {
+        try {
+            const response = await axiosPrivate.get(GET_FRIENDS_URL);
+            console.log(response.data);
+            dispatch(loadFriends({ friends: response.data.userEmail }));
+        } catch (err) {
+            // navigate user to /login
+            console.log(err);
+            dispatch(resetAllState());
+            navigate("/login");
+        }
+    };
+
+    useEffect(() => {
+        dispatchLoadFriends();
+    }, []);
 
     useEffect(() => {
         console.log("chatInfoOpen: ", chatInfoState.chatInfoOpen);
@@ -177,6 +201,7 @@ const Messenger = ({ setMode }) => {
 
     const handleLogout = async () => {
         await dispatch(logoutUser());
+        dispatch(resetAllState());
         navigate("/login");
     };
 
@@ -199,6 +224,7 @@ const Messenger = ({ setMode }) => {
                 handleLogout={handleLogout}
                 setAddFriendDialogOpen={setAddFriendDialogOpen}
                 setViewFriendsDialogOpen={setViewFriendsDialogOpen}
+                dispatchLoadFriends={dispatchLoadFriends}
             />
             <Grid
                 display={showChatList && mdBelow ? "none" : "flex"}

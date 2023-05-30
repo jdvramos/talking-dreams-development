@@ -3,16 +3,9 @@ import { useState, useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { getAccessToken, getUserInfo } from "../features/authSlice";
 import { accessPersistRoute } from "../features/authSlice";
-import { Box, CircularProgress, styled } from "@mui/material";
+import Loading from "./Loading";
 
 // We put CheckJWTExistence in between the Login and Register component to prevent an already logged in user from accessing the /login and /register routes. The functionality of CheckJWTExistence is the same as the PersistLogin component, it dispatches the accessPersistRoute which will verify if the 'jwt' that is in the user's cookie is valid, if it is valid then we will navigate the user to the main route ('/'), else, if the user has no such 'jwt' in his/her cookies, meaning he/she has not yet logged in, then we will render the Outlet which will be either the Login or Register component.
-
-const CenteredBox = styled(Box)(({ theme }) => ({
-    height: "100%",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-}));
 
 const CheckJWTExistence = () => {
     const accessToken = useSelector(getAccessToken);
@@ -44,9 +37,7 @@ const CheckJWTExistence = () => {
     return (
         <>
             {isLoading ? (
-                <CenteredBox>
-                    <CircularProgress />
-                </CenteredBox>
+                <Loading />
             ) : userInfo?.email ? (
                 <Navigate to="/" />
             ) : (

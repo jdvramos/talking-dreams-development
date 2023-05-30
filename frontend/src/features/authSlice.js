@@ -115,7 +115,15 @@ export const accessPersistRoute = createAsyncThunk(
 const authSlice = createSlice({
     name: "auth",
     initialState,
-    reducers: {},
+    reducers: {
+        updateAccessToken(state, action) {
+            const { accessToken } = action.payload;
+            state.accessToken = accessToken;
+        },
+        resetState(state) {
+            Object.assign(state, initialState);
+        },
+    },
     extraReducers(builder) {
         builder
             .addCase(loginUser.fulfilled, (state, action) => {
@@ -128,11 +136,6 @@ const authSlice = createSlice({
                 state.accessToken = action.payload.accessToken;
                 state.userProfileImage = action.payload.userProfileImage;
             })
-            .addCase(logoutUser.fulfilled, (state, action) => {
-                state.userInfo = {};
-                state.accessToken = "";
-                state.userProfileImage = "";
-            })
             .addCase(accessPersistRoute.fulfilled, (state, action) => {
                 state.userInfo = action.payload.userInfo;
                 state.accessToken = action.payload.accessToken;
@@ -143,5 +146,8 @@ const authSlice = createSlice({
 
 export const getUserInfo = (state) => state.auth.userInfo;
 export const getAccessToken = (state) => state.auth.accessToken;
+export const getUserProfileImage = (state) => state.auth.getUserProfileImage;
+
+export const { updateAccessToken, resetState } = authSlice.actions;
 
 export default authSlice.reducer;

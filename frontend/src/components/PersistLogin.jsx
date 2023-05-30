@@ -3,14 +3,7 @@ import { useState, useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { getAccessToken } from "../features/authSlice";
 import { accessPersistRoute } from "../features/authSlice";
-import { Box, CircularProgress, styled } from "@mui/material";
-
-const CenteredBox = styled(Box)(({ theme }) => ({
-    height: "100%",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-}));
+import Loading from "./Loading";
 
 const PersistLogin = () => {
     const accessToken = useSelector(getAccessToken);
@@ -44,17 +37,7 @@ const PersistLogin = () => {
         console.log(`aT: ${JSON.stringify(accessToken)}`);
     }, [isLoading]);
 
-    return (
-        <>
-            {isLoading ? (
-                <CenteredBox>
-                    <CircularProgress />
-                </CenteredBox>
-            ) : (
-                <Outlet />
-            )}
-        </>
-    );
+    return <>{isLoading ? <Loading /> : <Outlet />}</>;
 };
 
 export default PersistLogin;

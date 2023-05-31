@@ -64,12 +64,12 @@ const UserSchema = new Schema(
         refreshToken: {
             type: String,
         },
-        // friends: [
-        //     {
-        //         type: Schema.Types.ObjectId,
-        //         ref: "User",
-        //     },
-        // ],
+        friends: [
+            {
+                type: Schema.Types.ObjectId,
+                ref: "User",
+            },
+        ],
         // friendRequestSent: [
         //     {
         //         type: Schema.Types.ObjectId,

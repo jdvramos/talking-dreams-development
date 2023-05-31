@@ -50,7 +50,8 @@ const StyledBadge = styled(Badge)(({ theme }) => ({
 }));
 
 const Sidebar = ({
-    fakeUser,
+    userInfo,
+    userProfileImage,
     mdBelow,
     handleLogout,
     setViewFriendsDialogOpen,
@@ -79,8 +80,8 @@ const Sidebar = ({
                     variant="dot"
                 >
                     <Avatar
-                        src={fakeUser?.userProfileImage}
-                        alt={`${fakeUser?.firstName} ${fakeUser?.lastName}`}
+                        src={userProfileImage}
+                        alt={`${userInfo?.firstName} ${userInfo?.lastName}`}
                         sx={{
                             width: "45px",
                             height: "45px",

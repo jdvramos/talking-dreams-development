@@ -146,7 +146,7 @@ const authSlice = createSlice({
 
 export const getUserInfo = (state) => state.auth.userInfo;
 export const getAccessToken = (state) => state.auth.accessToken;
-export const getUserProfileImage = (state) => state.auth.getUserProfileImage;
+export const getUserProfileImage = (state) => state.auth.userProfileImage;
 
 export const { updateAccessToken, resetState } = authSlice.actions;
 

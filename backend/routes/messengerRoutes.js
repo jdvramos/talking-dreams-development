@@ -1,7 +1,11 @@
 const router = require("express").Router();
 
-const { getFriends } = require("../controller/messengerController");
+const {
+    getChatList,
+    getCurrentMessages,
+} = require("../controller/messengerController");
 
-router.get("/get-friends", getFriends);
+router.get("/get-chatlist", getChatList);
+router.get("/get-current-messages/:id", getCurrentMessages);
 
 module.exports = router;

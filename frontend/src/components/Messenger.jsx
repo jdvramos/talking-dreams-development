@@ -9,21 +9,26 @@ import ChatInfoDrawerMdOnly from "./ChatInfoDrawerMdOnly";
 import ChatInfoDrawerMdBelow from "./ChatInfoDrawerMdBelow";
 import ViewFriendsDialog from "./ViewFriendsDialog";
 import { useNavigate } from "react-router-dom";
-import { logoutUser } from "../features/authSlice";
+import {
+    getUserInfo,
+    getUserProfileImage,
+    logoutUser,
+} from "../features/authSlice";
 import { resetAllState } from "../features/resetAllState";
-import { loadFriends } from "../features/messengerSlice";
+import {
+    setChatList,
+    getChatList,
+    getCurrentMessages,
+    setCurrentMessages,
+} from "../features/messengerSlice";
 import useAxiosPrivate from "../hooks/useAxiosPrivate";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { useEffect, useRef, useState } from "react";
 
 // FOR TESTING PURPOSES ONLY DELETE LATER
 import {
     fakeFriends,
-    fakeMessagesKim,
-    fakeMessagesLalo,
-    fakeMessagesSaul,
     fakeActiveUsers,
-    fakeUser,
     fakeFriendRequestSent,
     fakeFriendRequestReceived,
 } from "../fakedata/fakedata";
@@ -55,7 +60,8 @@ const ChatInfoGridItem = styled(Grid)(({ theme }) => ({
 }));
 
 const Messenger = ({ setMode }) => {
-    const GET_FRIENDS_URL = "/api/v1/messenger/get-friends";
+    const GET_CHATLIST_URL = "/api/v1/messenger/get-chatlist";
+    const GET_CURRENT_MESSAGES_URL = "/api/v1/messenger/get-current-messages";
 
     const scrollRef = useRef();
 
@@ -64,6 +70,11 @@ const Messenger = ({ setMode }) => {
     const navigate = useNavigate();
 
     const dispatch = useDispatch();
+
+    const userInfo = useSelector(getUserInfo);
+    const userProfileImage = useSelector(getUserProfileImage);
+    const chatList = useSelector(getChatList);
+    const currentMessages = useSelector(getCurrentMessages);
 
     const theme = useTheme();
     const isDarkMode = theme.palette.mode === "dark";
@@ -81,7 +92,6 @@ const Messenger = ({ setMode }) => {
     const [message, setMessage] = useState("");
 
     const [currentFriend, setCurrentFriend] = useState(null);
-    const [currentMessages, setCurrentMessages] = useState([]);
 
     const [chatInfoState, setChatInfoState] = useState({
         chatInfoOpen: false,
@@ -99,22 +109,41 @@ const Messenger = ({ setMode }) => {
         }
     };
 
-    const dispatchLoadFriends = async () => {
+    const dispatchSetChatList = async () => {
         try {
-            const response = await axiosPrivate.get(GET_FRIENDS_URL);
-            console.log(response.data);
-            dispatch(loadFriends({ friends: response.data.userEmail }));
+            const response = await axiosPrivate.get(GET_CHATLIST_URL);
+            dispatch(setChatList({ chatList: response.data.chatList }));
         } catch (err) {
-            // navigate user to /login
-            console.log(err);
             dispatch(resetAllState());
             navigate("/login");
         }
     };
 
     useEffect(() => {
-        dispatchLoadFriends();
+        dispatchSetChatList();
     }, []);
+
+    const dispatchSetCurrentMessages = async (friendId) => {
+        try {
+            const response = await axiosPrivate.get(
+                `${GET_CURRENT_MESSAGES_URL}/${friendId}`
+            );
+            dispatch(
+                setCurrentMessages({
+                    currentMessages: response.data.currentMessages,
+                })
+            );
+        } catch (error) {
+            dispatch(resetAllState());
+            navigate("/login");
+        }
+    };
+
+    useEffect(() => {
+        if (currentFriend) {
+            dispatchSetCurrentMessages(currentFriend?._id);
+        }
+    }, [currentFriend]);
 
     useEffect(() => {
         console.log("chatInfoOpen: ", chatInfoState.chatInfoOpen);
@@ -143,22 +172,14 @@ const Messenger = ({ setMode }) => {
     const goBackToChatList = () => {
         setShowChatList(true);
         setCurrentFriend(null);
-        setCurrentMessages([]);
+        dispatch(
+            setCurrentMessages({
+                currentMessages: [],
+            })
+        );
     };
 
     useEffect(() => {
-        console.log(currentFriend);
-        if (currentFriend) {
-            if (currentFriend._id === "10") {
-                setCurrentMessages(fakeMessagesSaul);
-            } else if (currentFriend._id === "11") {
-                setCurrentMessages(fakeMessagesKim);
-            } else if (currentFriend._id === "12") {
-                setCurrentMessages(fakeMessagesLalo);
-            } else {
-                setCurrentMessages([]);
-            }
-        }
         if (currentFriend) {
             setMessage("");
         }
@@ -181,7 +202,11 @@ const Messenger = ({ setMode }) => {
 
         if (currentFriend && mdBelow) {
             setCurrentFriend(null);
-            setCurrentMessages([]);
+            dispatch(
+                setCurrentMessages({
+                    currentMessages: [],
+                })
+            );
         }
     }, [mdBelow]);
 
@@ -208,12 +233,14 @@ const Messenger = ({ setMode }) => {
     return (
         <MessengerContainer direction="row">
             <Sidebar
-                fakeUser={fakeUser}
+                userInfo={userInfo}
+                userProfileImage={userProfileImage}
                 mdBelow={mdBelow}
                 handleLogout={handleLogout}
                 setViewFriendsDialogOpen={setViewFriendsDialogOpen}
             />
             <ChatList
+                chatList={chatList}
                 handleSelectCurrentFriend={handleSelectCurrentFriend}
                 setMode={setMode}
                 isDarkMode={isDarkMode}
@@ -224,7 +251,7 @@ const Messenger = ({ setMode }) => {
                 handleLogout={handleLogout}
                 setAddFriendDialogOpen={setAddFriendDialogOpen}
                 setViewFriendsDialogOpen={setViewFriendsDialogOpen}
-                dispatchLoadFriends={dispatchLoadFriends}
+                dispatchSetChatList={dispatchSetChatList}
             />
             <Grid
                 display={showChatList && mdBelow ? "none" : "flex"}
@@ -244,7 +271,7 @@ const Messenger = ({ setMode }) => {
                         mdBelow={mdBelow}
                         isDarkMode={isDarkMode}
                         goBackToChatList={goBackToChatList}
-                        userId={fakeUser._id}
+                        userId={userInfo.id}
                         handleMessageChange={handleMessageChange}
                         message={message}
                         addEmoji={addEmoji}

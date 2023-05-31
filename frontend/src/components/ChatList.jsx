@@ -88,6 +88,7 @@ const SearchTextField = styled(TextField)(({ theme }) => ({
 }));
 
 const ChatList = ({
+    chatList,
     handleSelectCurrentFriend,
     setMode,
     isDarkMode,
@@ -98,7 +99,7 @@ const ChatList = ({
     handleLogout,
     setAddFriendDialogOpen,
     setViewFriendsDialogOpen,
-    dispatchLoadFriends,
+    dispatchSetChatList,
 }) => {
     const theme = useTheme();
 
@@ -160,7 +161,7 @@ const ChatList = ({
                                         : "grey.300",
                                 },
                             }}
-                            onClick={() => dispatchLoadFriends()}
+                            onClick={() => dispatchSetChatList()}
                         >
                             <RefreshIcon />
                         </IconButton>
@@ -282,9 +283,9 @@ const ChatList = ({
                     },
                 }}
             >
-                {fakeFriends &&
-                    fakeFriends.length > 0 &&
-                    fakeFriends.map((friend) => (
+                {chatList &&
+                    chatList.length > 0 &&
+                    chatList.map((friend) => (
                         <Friend
                             key={friend.friendInfo._id}
                             friend={friend}

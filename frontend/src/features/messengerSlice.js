@@ -1,7 +1,7 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 
 const initialState = {
-    friends: [],
+    chatList: [],
     currentMessages: [],
 };
 
@@ -9,9 +9,13 @@ const messengerSlice = createSlice({
     name: "messenger",
     initialState,
     reducers: {
-        loadFriends(state, action) {
-            const { friends } = action.payload;
-            state.friends = friends;
+        setChatList(state, action) {
+            const { chatList } = action.payload;
+            state.chatList = chatList;
+        },
+        setCurrentMessages(state, action) {
+            const { currentMessages } = action.payload;
+            state.currentMessages = currentMessages;
         },
         resetState(state) {
             Object.assign(state, initialState);
@@ -19,8 +23,10 @@ const messengerSlice = createSlice({
     },
 });
 
-export const getFriends = (state) => state.messenger.friends;
+export const getChatList = (state) => state.messenger.chatList;
+export const getCurrentMessages = (state) => state.messenger.currentMessages;
 
-export const { loadFriends, resetState } = messengerSlice.actions;
+export const { setChatList, setCurrentMessages, resetState } =
+    messengerSlice.actions;
 
 export default messengerSlice.reducer;

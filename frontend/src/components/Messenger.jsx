@@ -16,19 +16,32 @@ import {
 } from "../features/authSlice";
 import { resetAllState } from "../features/resetAllState";
 import {
-    setChatList,
     getChatList,
+    setChatList,
+    getCurrentFriend,
+    setCurrentFriend,
     getCurrentMessages,
     setCurrentMessages,
+    getOnlineFriends,
+    setOnlineFriends,
+    getMessageSent,
+    setMessageSentToTrue,
+    setMessageSentToFalse,
+    getSocketMessage,
+    setSocketMessage,
+    insertSocketMessageToCurrentMessages,
+    updateLatestMessageOnChatList,
+    updateLatestMessageStatusOnChatList,
 } from "../features/messengerSlice";
 import useAxiosPrivate from "../hooks/useAxiosPrivate";
 import { useDispatch, useSelector } from "react-redux";
 import { useEffect, useRef, useState } from "react";
 
+import { io } from "socket.io-client";
+
 // FOR TESTING PURPOSES ONLY DELETE LATER
 import {
     fakeFriends,
-    fakeActiveUsers,
     fakeFriendRequestSent,
     fakeFriendRequestReceived,
 } from "../fakedata/fakedata";
@@ -62,8 +75,10 @@ const ChatInfoGridItem = styled(Grid)(({ theme }) => ({
 const Messenger = ({ setMode }) => {
     const GET_CHATLIST_URL = "/api/v1/messenger/get-chatlist";
     const GET_CURRENT_MESSAGES_URL = "/api/v1/messenger/get-current-messages";
+    const SEND_MESSAGE_URL = "/api/v1/messenger/send-message";
 
     const scrollRef = useRef();
+    const socket = useRef();
 
     const axiosPrivate = useAxiosPrivate();
 
@@ -73,8 +88,13 @@ const Messenger = ({ setMode }) => {
 
     const userInfo = useSelector(getUserInfo);
     const userProfileImage = useSelector(getUserProfileImage);
+
     const chatList = useSelector(getChatList);
+    const currentFriend = useSelector(getCurrentFriend);
     const currentMessages = useSelector(getCurrentMessages);
+    const onlineFriends = useSelector(getOnlineFriends);
+    const messageSent = useSelector(getMessageSent);
+    const socketMessage = useSelector(getSocketMessage);
 
     const theme = useTheme();
     const isDarkMode = theme.palette.mode === "dark";
@@ -90,19 +110,41 @@ const Messenger = ({ setMode }) => {
     const [showChatList, setShowChatList] = useState(true);
 
     const [message, setMessage] = useState("");
-
-    const [currentFriend, setCurrentFriend] = useState(null);
+    // const [socketMessage, setSocketMessage] = useState("");
 
     const [chatInfoState, setChatInfoState] = useState({
         chatInfoOpen: false,
         chatInfoDrawerOpen: false,
     });
 
+    useEffect(() => {
+        socket.current = io("ws://localhost:8001");
+
+        socket.current.on("receiveMessage", (message) => {
+            dispatch(setSocketMessage({ socketMessage: message }));
+        });
+
+        socket.current.on("getAllOnlineUsers", (onlineUsers) => {
+            const onlineFriendsList = onlineUsers
+                .filter((user) => user.userInfo.id !== userInfo?.id)
+                .filter((user) => user.userInfo.friends.includes(userInfo?.id))
+                .map((user) => user.userInfo.id);
+
+            console.log("onlineFriends: ", onlineFriendsList);
+
+            dispatch(setOnlineFriends({ onlineFriends: onlineFriendsList }));
+        });
+    }, []);
+
+    useEffect(() => {
+        socket.current.emit("addUser", userInfo.id, userInfo);
+    }, []);
+
     const [addFriendDialogOpen, setAddFriendDialogOpen] = useState(false);
     const [viewFriendsDialogOpen, setViewFriendsDialogOpen] = useState(false);
 
     const handleSelectCurrentFriend = (friendInfo) => {
-        setCurrentFriend(friendInfo);
+        dispatch(setCurrentFriend({ currentFriend: friendInfo }));
 
         if (mdBelow) {
             setShowChatList(false);
@@ -145,6 +187,99 @@ const Messenger = ({ setMode }) => {
         }
     }, [currentFriend]);
 
+    const sendMessage = async (messageType) => {
+        try {
+            const senderName = `${userInfo?.firstName} ${userInfo?.lastName}`;
+            const response = await axiosPrivate.post(
+                SEND_MESSAGE_URL,
+                JSON.stringify({
+                    messageType,
+                    content: message,
+                    senderId: userInfo?.id,
+                    senderName,
+                    receiverId: currentFriend?._id,
+                })
+            );
+
+            dispatch(
+                setMessageSentToTrue({ messageSent: response.data.messageSent })
+            );
+
+            setMessage("");
+        } catch (error) {
+            dispatch(resetAllState());
+            navigate("/login");
+        }
+    };
+
+    useEffect(() => {
+        if (messageSent) {
+            socket.current.emit(
+                "sendMessage",
+                currentMessages[currentMessages.length - 1]
+            );
+
+            dispatch(
+                updateLatestMessageOnChatList({
+                    latestMessage: currentMessages[currentMessages.length - 1],
+                })
+            );
+
+            dispatch(setMessageSentToFalse());
+        }
+    }, [messageSent]);
+
+    useEffect(() => {
+        if (socketMessage && currentFriend) {
+            if (
+                socketMessage.senderId === currentFriend?._id &&
+                socketMessage.receiverId === userInfo?.id
+            ) {
+                console.log("The socket message: ", socketMessage);
+
+                dispatch(
+                    insertSocketMessageToCurrentMessages({ socketMessage })
+                );
+
+                // Async call
+                // dispatch(updateStatusToSeen({ socketMessage }))
+
+                // socket.current.emit("messageSeen", socketMessage);
+
+                // At the beginning, we dispatch this UPDATE_FRIEND_MESSAGE action when the logged in user sends a new message to the currentFriend, now we also want to dispatch this action when the logged in user receives a new message from the currentFriend.
+
+                const seenSocketMessage = {
+                    ...socketMessage,
+                    status: "seen",
+                };
+
+                dispatch(
+                    updateLatestMessageStatusOnChatList({
+                        latestMessage: seenSocketMessage,
+                    })
+                );
+            }
+        }
+
+        dispatch(setSocketMessage({ socketMessage: "" }));
+    }, [socketMessage]);
+
+    useEffect(() => {
+        if (
+            socketMessage &&
+            socketMessage.senderId !== currentFriend?._id &&
+            socketMessage.receiverId === userInfo?.id
+        ) {
+            // Add an alert when new message comes or notification sound
+
+            dispatch(
+                updateLatestMessageStatusOnChatList({
+                    latestMessage: socketMessage,
+                })
+            );
+        }
+    }, [socketMessage]);
+
     useEffect(() => {
         console.log("chatInfoOpen: ", chatInfoState.chatInfoOpen);
         console.log("chatInfoDrawerOpen: ", chatInfoState.chatInfoDrawerOpen);
@@ -171,7 +306,7 @@ const Messenger = ({ setMode }) => {
 
     const goBackToChatList = () => {
         setShowChatList(true);
-        setCurrentFriend(null);
+        dispatch(setCurrentFriend({ currentFriend: null }));
         dispatch(
             setCurrentMessages({
                 currentMessages: [],
@@ -201,7 +336,7 @@ const Messenger = ({ setMode }) => {
         }
 
         if (currentFriend && mdBelow) {
-            setCurrentFriend(null);
+            dispatch(setCurrentFriend({ currentFriend: null }));
             dispatch(
                 setCurrentMessages({
                     currentMessages: [],
@@ -226,6 +361,7 @@ const Messenger = ({ setMode }) => {
 
     const handleLogout = async () => {
         await dispatch(logoutUser());
+        socket.current.emit("logout", userInfo.id);
         dispatch(resetAllState());
         navigate("/login");
     };
@@ -240,6 +376,7 @@ const Messenger = ({ setMode }) => {
                 setViewFriendsDialogOpen={setViewFriendsDialogOpen}
             />
             <ChatList
+                userId={userInfo.id}
                 chatList={chatList}
                 handleSelectCurrentFriend={handleSelectCurrentFriend}
                 setMode={setMode}
@@ -247,7 +384,7 @@ const Messenger = ({ setMode }) => {
                 mdBelow={mdBelow}
                 showChatList={showChatList}
                 currentFriend={currentFriend}
-                fakeActiveUsers={fakeActiveUsers}
+                onlineFriends={onlineFriends}
                 handleLogout={handleLogout}
                 setAddFriendDialogOpen={setAddFriendDialogOpen}
                 setViewFriendsDialogOpen={setViewFriendsDialogOpen}
@@ -275,7 +412,8 @@ const Messenger = ({ setMode }) => {
                         handleMessageChange={handleMessageChange}
                         message={message}
                         addEmoji={addEmoji}
-                        fakeActiveUsers={fakeActiveUsers}
+                        sendMessage={sendMessage}
+                        onlineFriends={onlineFriends}
                         setChatInfoState={setChatInfoState}
                         scrollRef={scrollRef}
                     />

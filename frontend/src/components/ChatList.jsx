@@ -24,10 +24,6 @@ import RefreshIcon from "@mui/icons-material/Refresh";
 import Friend from "./Friend";
 import { useEffect, useState } from "react";
 
-// FOR TESTING PURPOSES ONLY DELETE LATER
-import { fakeFriends } from "../fakedata/fakedata";
-import { userId } from "../fakedata/fakedata";
-
 const ChatListMain = styled(Box)(({ theme }) => ({
     display: "flex",
     flexDirection: "column",
@@ -88,6 +84,7 @@ const SearchTextField = styled(TextField)(({ theme }) => ({
 }));
 
 const ChatList = ({
+    userId,
     chatList,
     handleSelectCurrentFriend,
     setMode,
@@ -95,7 +92,7 @@ const ChatList = ({
     mdBelow,
     showChatList,
     currentFriend,
-    fakeActiveUsers,
+    onlineFriends,
     handleLogout,
     setAddFriendDialogOpen,
     setViewFriendsDialogOpen,
@@ -294,7 +291,7 @@ const ChatList = ({
                                 handleSelectCurrentFriend
                             }
                             currentFriend={currentFriend}
-                            fakeActiveUsers={fakeActiveUsers}
+                            onlineFriends={onlineFriends}
                         />
                     ))}
             </CLFriends>

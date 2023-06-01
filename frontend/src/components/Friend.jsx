@@ -72,7 +72,7 @@ const Friend = ({
     friend,
     userId,
     currentFriend,
-    fakeActiveUsers,
+    onlineFriends,
 }) => {
     const theme = useTheme();
     const isDarkMode = theme.palette.mode === "dark";
@@ -105,9 +105,9 @@ const Friend = ({
                     : ""
             }
         >
-            {fakeActiveUsers &&
-            fakeActiveUsers.length > 0 &&
-            fakeActiveUsers.some((user) => user.userId === friendId) ? (
+            {onlineFriends &&
+            onlineFriends.length > 0 &&
+            onlineFriends.includes(friendId) ? (
                 <StyledBadge
                     overlap="circular"
                     anchorOrigin={{ vertical: "bottom", horizontal: "right" }}

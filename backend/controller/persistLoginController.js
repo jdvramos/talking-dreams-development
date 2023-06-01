@@ -31,6 +31,10 @@ module.exports.handlePersistLogin = async (req, res) => {
                     firstName: foundUser.firstName,
                     lastName: foundUser.lastName,
                     email: foundUser.email,
+                    friends: foundUser.friends,
+                    friendRequestSent: foundUser.friendRequestSent || [],
+                    friendRequestReceived:
+                        foundUser.friendRequestReceived || [],
                 },
                 accessToken,
                 userProfileImage: foundUser.userProfileImage,

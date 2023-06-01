@@ -110,7 +110,8 @@ const ChatBox = ({
     handleMessageChange,
     message,
     addEmoji,
-    fakeActiveUsers,
+    sendMessage,
+    onlineFriends,
     setChatInfoState,
     scrollRef,
 }) => {
@@ -130,15 +131,22 @@ const ChatBox = ({
         setAnchorEl(null);
     };
 
+    const handleKeyPress = (event) => {
+        if (event.key === "Enter" && message) {
+            event.preventDefault();
+            sendMessage("text");
+        }
+    };
+
     useEffect(() => {
         const isOnline =
-            fakeActiveUsers &&
-            fakeActiveUsers.length > 0 &&
-            fakeActiveUsers.some((user) => user.userId === currentFriend?._id)
+            onlineFriends &&
+            onlineFriends.length > 0 &&
+            onlineFriends.includes(currentFriend?._id)
                 ? true
                 : false;
         setFriendOnline(isOnline);
-    }, [fakeActiveUsers, currentFriend]);
+    }, [onlineFriends, currentFriend]);
 
     return (
         <>
@@ -248,6 +256,7 @@ const ChatBox = ({
                             placeholder="Write a message"
                             fullWidth
                             onChange={handleMessageChange}
+                            onKeyDown={handleKeyPress}
                             value={message}
                             InputProps={{
                                 endAdornment: (
@@ -298,9 +307,10 @@ const ChatBox = ({
                         ></ChatTextField>
                         {message ? (
                             <IconButton
-                                aria-label="send like emoji"
+                                aria-label="send message"
                                 size="medium"
                                 sx={{ color: "#1976d2" }}
+                                onClick={() => sendMessage("text")}
                             >
                                 <SendIcon fontSize="inherit" />
                             </IconButton>

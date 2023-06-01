@@ -9,6 +9,7 @@ const {
     Conflict,
     UnAuthenticatedError,
     NotFoundError,
+    InternalServerError,
 } = require("../errors/index");
 
 module.exports.getChatList = async (req, res) => {
@@ -60,4 +61,25 @@ module.exports.getCurrentMessages = async (req, res) => {
     } else {
         res.status(StatusCodes.OK).json({ currentMessages: [] });
     }
+};
+
+module.exports.sendMessage = async (req, res) => {
+    const userEmail = req.email;
+
+    const { _id: senderId } = await User.findOne({ email: userEmail });
+    const { messageType, senderName, receiverId, content } = req.body;
+
+    const messageSent = await Message.create({
+        messageType,
+        content,
+        senderId,
+        senderName,
+        receiverId,
+    });
+
+    if (!messageSent) {
+        throw new InternalServerError("Failed to save message.");
+    }
+
+    res.status(StatusCodes.CREATED).json({ messageSent });
 };

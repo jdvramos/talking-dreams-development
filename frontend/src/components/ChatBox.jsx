@@ -3,7 +3,9 @@ import {
     Badge,
     Box,
     IconButton,
+    Input,
     InputAdornment,
+    InputLabel,
     Menu,
     MenuItem,
     Stack,
@@ -18,9 +20,10 @@ import ImageIcon from "@mui/icons-material/Image";
 import EmojiEmotionsIcon from "@mui/icons-material/EmojiEmotions";
 import ThumbUpIcon from "@mui/icons-material/ThumbUp";
 import SendIcon from "@mui/icons-material/Send";
+import CloseIcon from "@mui/icons-material/Close";
 import FriendOpening from "./FriendOpening";
 import Messages from "./Messages";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 const CBHeader = styled(Box)(({ theme }) => ({
     display: "flex",
@@ -71,6 +74,38 @@ const ChatTextField = styled(TextField)(({ theme }) => ({
     },
 }));
 
+const ImagePreviewContainer = styled(Box)(({ theme }) => ({
+    width: "100%",
+    borderRadius: "20px",
+    backgroundColor: "#fff",
+    padding: "8px 12px",
+    height: "60px",
+    marginLeft: "5px",
+    marginRight: "5px",
+    marginBottom: "10px",
+}));
+
+const ImagePreviewBox = styled(Box)(({ theme }) => ({
+    width: "50px",
+    borderRadius: "20px",
+    height: "100%",
+    position: "relative",
+}));
+
+const ImagePreview = styled(Box)(({ theme }) => ({
+    width: "50px",
+    borderRadius: "20px",
+    height: "100%",
+    objectFit: "cover",
+}));
+
+const RemoveImagePreviewButton = styled(IconButton)(({ theme }) => ({
+    position: "absolute",
+    top: "-5px",
+    right: "-7px",
+    padding: "3px",
+}));
+
 const StyledBadge = styled(Badge)(({ theme }) => ({
     "& .MuiBadge-badge": {
         backgroundColor: "#44b700",
@@ -114,6 +149,12 @@ const ChatBox = ({
     onlineFriends,
     setChatInfoState,
     scrollRef,
+    currentFriendIsTypingInfo,
+    handleImageChange,
+    imagePreview,
+    validImage,
+    handleDeleteImagePreview,
+    sendImage,
 }) => {
     const theme = useTheme();
 
@@ -122,6 +163,12 @@ const ChatBox = ({
     const [anchorEl, setAnchorEl] = useState(null);
     const [isFriendOnline, setFriendOnline] = useState(false);
     const open = Boolean(anchorEl);
+
+    const imageUploadRef = useRef();
+
+    const handleUploadClick = () => {
+        imageUploadRef.current.click();
+    };
 
     const handleOpenEmojiMenu = (event) => {
         setAnchorEl(event.currentTarget);
@@ -238,79 +285,141 @@ const ChatBox = ({
                             currentFriend={currentFriend}
                             isDarkMode={isDarkMode}
                             scrollRef={scrollRef}
+                            currentFriendIsTypingInfo={
+                                currentFriendIsTypingInfo
+                            }
                         />
                     </CBMessages>
-                    <CBSender>
+                    <CBSender
+                        sx={{
+                            height:
+                                imagePreview && validImage ? "80px" : "60px",
+                            alignItems:
+                                imagePreview && validImage
+                                    ? "flex-end"
+                                    : "center",
+                        }}
+                    >
                         <IconButton
+                            component={InputLabel}
                             aria-label="insert image"
                             size="medium"
                             sx={{ color: "#1976d2" }}
+                            htmlFor="uploadImage"
+                            onClick={handleUploadClick}
                         >
                             <ImageIcon fontSize="inherit" />
                         </IconButton>
-                        <ChatTextField
-                            id="search"
-                            variant="filled"
-                            className="roundedInput"
-                            autoComplete="off"
-                            placeholder="Write a message"
-                            fullWidth
-                            onChange={handleMessageChange}
-                            onKeyDown={handleKeyPress}
-                            value={message}
-                            InputProps={{
-                                endAdornment: (
-                                    <InputAdornment
-                                        className="searchIcon"
-                                        position="end"
+                        <Input
+                            type="file"
+                            id="uploadImage"
+                            accept="image/*"
+                            ref={imageUploadRef}
+                            onChange={handleImageChange}
+                            sx={{ display: "none" }}
+                        ></Input>
+                        {imagePreview && validImage ? (
+                            <ImagePreviewContainer
+                                sx={{
+                                    backgroundColor: isDarkMode
+                                        ? "rgba(255, 255, 255, 0.09)"
+                                        : "rgba(0, 0, 0, 0.06)",
+                                }}
+                            >
+                                <ImagePreviewBox>
+                                    <ImagePreview
+                                        component="img"
+                                        src={imagePreview}
+                                    ></ImagePreview>
+                                    <RemoveImagePreviewButton
+                                        sx={{
+                                            fontSize: "12px",
+                                            backgroundColor: isDarkMode
+                                                ? "grey.800"
+                                                : "#fff",
+                                            "&:hover": {
+                                                backgroundColor: isDarkMode
+                                                    ? "grey.700"
+                                                    : "grey.200",
+                                            },
+                                        }}
+                                        onClick={handleDeleteImagePreview}
                                     >
-                                        <IconButton
-                                            aria-label="insert image"
-                                            size="medium"
-                                            sx={{ color: "#1976d2" }}
-                                            onClick={handleOpenEmojiMenu}
+                                        <CloseIcon fontSize="inherit" />
+                                    </RemoveImagePreviewButton>
+                                </ImagePreviewBox>
+                            </ImagePreviewContainer>
+                        ) : (
+                            <ChatTextField
+                                id="search"
+                                variant="filled"
+                                className="roundedInput"
+                                autoComplete="off"
+                                placeholder="Write a message"
+                                fullWidth
+                                onChange={handleMessageChange}
+                                onKeyDown={handleKeyPress}
+                                value={message}
+                                InputProps={{
+                                    endAdornment: (
+                                        <InputAdornment
+                                            className="searchIcon"
+                                            position="end"
                                         >
-                                            <EmojiEmotionsIcon fontSize="inherit" />
-                                        </IconButton>
-                                        <Menu
-                                            id="menu-btn"
-                                            anchorEl={anchorEl}
-                                            open={open}
-                                            onClose={handleCloseEmojiMenu}
-                                            anchorOrigin={{
-                                                vertical: "top",
-                                                horizontal: "center",
-                                            }}
-                                            transformOrigin={{
-                                                vertical: "bottom",
-                                                horizontal: "center",
-                                            }}
-                                        >
-                                            <Stack direction="row">
-                                                {emojis &&
-                                                    emojis.map((emoji, i) => (
-                                                        <MenuItem
-                                                            key={i}
-                                                            onClick={() =>
-                                                                addEmoji(emoji)
-                                                            }
-                                                        >
-                                                            {emoji}
-                                                        </MenuItem>
-                                                    ))}
-                                            </Stack>
-                                        </Menu>
-                                    </InputAdornment>
-                                ),
-                                disableUnderline: true, // <== added this
-                            }}
-                        ></ChatTextField>
-                        {message ? (
+                                            <IconButton
+                                                size="medium"
+                                                sx={{ color: "#1976d2" }}
+                                                onClick={handleOpenEmojiMenu}
+                                            >
+                                                <EmojiEmotionsIcon fontSize="inherit" />
+                                            </IconButton>
+                                            <Menu
+                                                id="menu-btn"
+                                                anchorEl={anchorEl}
+                                                open={open}
+                                                onClose={handleCloseEmojiMenu}
+                                                anchorOrigin={{
+                                                    vertical: "top",
+                                                    horizontal: "center",
+                                                }}
+                                                transformOrigin={{
+                                                    vertical: "bottom",
+                                                    horizontal: "center",
+                                                }}
+                                            >
+                                                <Stack direction="row">
+                                                    {emojis &&
+                                                        emojis.map(
+                                                            (emoji, i) => (
+                                                                <MenuItem
+                                                                    key={i}
+                                                                    onClick={() =>
+                                                                        addEmoji(
+                                                                            emoji
+                                                                        )
+                                                                    }
+                                                                >
+                                                                    {emoji}
+                                                                </MenuItem>
+                                                            )
+                                                        )}
+                                                </Stack>
+                                            </Menu>
+                                        </InputAdornment>
+                                    ),
+                                    disableUnderline: true, // <== added this
+                                }}
+                            ></ChatTextField>
+                        )}
+
+                        {message || imagePreview ? (
                             <IconButton
                                 aria-label="send message"
                                 size="medium"
                                 sx={{ color: "#1976d2" }}
-                                onClick={() => sendMessage("text")}
+                                onClick={() =>
+                                    imagePreview ? sendImage() : sendMessage()
+                                }
                             >
                                 <SendIcon fontSize="inherit" />
                             </IconButton>

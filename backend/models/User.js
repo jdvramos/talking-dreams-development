@@ -64,6 +64,10 @@ const UserSchema = new Schema(
         refreshToken: {
             type: String,
         },
+        preferredTheme: {
+            type: String,
+            default: "light",
+        },
         friends: [
             {
                 type: Schema.Types.ObjectId,

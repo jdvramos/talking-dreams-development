@@ -1,6 +1,8 @@
 import { Avatar, Box, Stack, Typography, styled } from "@mui/material";
+import FriendIsTyping from "./FriendIsTyping";
 import formatMessageTime from "../utils/formatMessageTime";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
+import { useEffect, useState, useRef } from "react";
 
 const MessagesMain = styled(Box)(({ theme }) => ({
     display: "flex",
@@ -39,7 +41,31 @@ const Messages = ({
     currentFriend,
     isDarkMode,
     scrollRef,
+    currentFriendIsTypingInfo,
 }) => {
+    const endRef = useRef();
+
+    const [showFriendIsTyping, setShowFriendIsTyping] = useState(false);
+
+    useEffect(() => {
+        if (currentFriendIsTypingInfo?.senderId === currentFriend?._id) {
+            setShowFriendIsTyping(true);
+            const timeout = setTimeout(() => {
+                setShowFriendIsTyping(false);
+            }, 2000);
+            return () => clearTimeout(timeout);
+        }
+    }, [currentFriendIsTypingInfo, currentFriend]);
+
+    // Stops the typing animation as soon as a new message has been received
+    useEffect(() => {
+        setShowFriendIsTyping(false);
+    }, [currentMessages]);
+
+    useEffect(() => {
+        endRef.current?.scrollIntoView();
+    }, []);
+
     return (
         <>
             {currentMessages && currentMessages.length > 0 && (
@@ -73,6 +99,9 @@ const Messages = ({
                                                 style={{ width: "100%" }}
                                                 src={message.content}
                                                 alt={message.content}
+                                                onLoad={() => {
+                                                    endRef.current.scrollIntoView();
+                                                }}
                                             />
                                         )}
                                     </MessageBubble>
@@ -158,6 +187,9 @@ const Messages = ({
                                                 style={{ width: "100%" }}
                                                 src={message.content}
                                                 alt={message.content}
+                                                onLoad={() => {
+                                                    endRef.current.scrollIntoView();
+                                                }}
                                             />
                                         )}
                                     </MessageBubble>
@@ -172,6 +204,28 @@ const Messages = ({
                             </FriendMessage>
                         )
                     )}
+                    {showFriendIsTyping && (
+                        <FriendMessage ml="14px" ref={scrollRef}>
+                            <Avatar
+                                src={currentFriend?.userProfileImage}
+                                alt={`${currentFriend?.firstName} ${currentFriend?.lastName}`}
+                                sx={{
+                                    width: "33px",
+                                    height: "33px",
+                                }}
+                            />
+                            <Stack>
+                                <MessageBubble
+                                    bgcolor={
+                                        isDarkMode ? "grey.800" : "grey.200"
+                                    }
+                                >
+                                    <FriendIsTyping />
+                                </MessageBubble>
+                            </Stack>
+                        </FriendMessage>
+                    )}
+                    <Box ref={endRef}></Box>
                 </MessagesMain>
             )}
         </>

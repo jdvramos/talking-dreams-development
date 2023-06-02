@@ -87,7 +87,8 @@ const ChatList = ({
     userId,
     chatList,
     handleSelectCurrentFriend,
-    setMode,
+    preferredTheme,
+    dispatchSetPreferredTheme,
     isDarkMode,
     mdBelow,
     showChatList,
@@ -102,19 +103,31 @@ const ChatList = ({
 
     const [anchorEl, setAnchorEl] = useState(null);
     const [switchChecked, setSwitchChecked] = useState(false);
+    const [isInitialMount, setIsInitialMount] = useState(true);
     const open = Boolean(anchorEl);
+
+    useEffect(() => {
+        if (preferredTheme === "light") {
+            setSwitchChecked(false);
+        } else {
+            setSwitchChecked(true);
+        }
+    }, [preferredTheme]);
 
     const handleDarkModeClick = () => {
         setSwitchChecked(!switchChecked);
+        setIsInitialMount(false);
     };
 
     useEffect(() => {
-        if (switchChecked) {
-            setMode("dark");
-        } else {
-            setMode("light");
+        if (!isInitialMount) {
+            if (switchChecked) {
+                dispatchSetPreferredTheme("dark");
+            } else {
+                dispatchSetPreferredTheme("light");
+            }
         }
-    }, [switchChecked]);
+    }, [switchChecked, isInitialMount]);
 
     const handleClickMenu = (event) => {
         setAnchorEl(event.currentTarget);

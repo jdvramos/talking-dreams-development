@@ -3,7 +3,7 @@ import axios from "../api/axios";
 import axiosMain from "axios";
 
 const initialState = {
-    userInfo: {},
+    userInfo: null,
     accessToken: "",
     userProfileImage: "",
 };

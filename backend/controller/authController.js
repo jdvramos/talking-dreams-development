@@ -101,6 +101,12 @@ module.exports.loginUser = async (req, res) => {
         maxAge: 24 * 60 * 60 * 1000,
     });
 
+    // // Use this instead when testing over network
+    // res.cookie("jwt", refreshToken, {
+    //     httpOnly: true,
+    //     maxAge: 24 * 60 * 60 * 1000,
+    // });
+
     res.status(StatusCodes.OK).json({
         userInfo: {
             id: user._id,

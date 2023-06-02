@@ -52,6 +52,11 @@ module.exports.getCurrentMessages = async (req, res) => {
     const userEmail = req.email;
 
     const { _id: userId } = await User.findOne({ email: userEmail });
+
+    if (!userId) {
+        throw new NotFoundError("User not found.");
+    }
+
     const friendId = req.params.id;
 
     const exchangedMessages = await getExchangedMessages(userId, friendId);
@@ -82,4 +87,52 @@ module.exports.sendMessage = async (req, res) => {
     }
 
     res.status(StatusCodes.CREATED).json({ messageSent });
+};
+
+module.exports.updateMessageStatusToSeen = async (req, res) => {
+    const { _id: messageId } = req.body.message;
+
+    const result = await Message.findByIdAndUpdate(messageId, {
+        status: "seen",
+    });
+
+    if (!result) {
+        throw new NotFoundError("Message not found.");
+    }
+
+    res.sendStatus(StatusCodes.OK);
+};
+
+module.exports.getTheme = async (req, res) => {
+    const userEmail = req.email;
+
+    const { preferredTheme } = await User.findOne({ email: userEmail });
+
+    if (!preferredTheme) {
+        throw new NotFoundError("User not found.");
+    }
+
+    res.status(StatusCodes.OK).json({ preferredTheme });
+};
+
+module.exports.setTheme = async (req, res) => {
+    const userEmail = req.email;
+
+    const { preferredTheme: theme } = req.body;
+
+    const { _id: userId } = await User.findOne({ email: userEmail });
+
+    if (!userId) {
+        throw new NotFoundError("User not found.");
+    }
+
+    const result = await User.findByIdAndUpdate(userId, {
+        preferredTheme: theme,
+    });
+
+    if (!result) {
+        throw new InternalServerError("Failed to save preferred theme.");
+    }
+
+    res.sendStatus(StatusCodes.OK);
 };

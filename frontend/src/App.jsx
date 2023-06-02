@@ -6,17 +6,18 @@ import CheckJWTExistence from "./components/CheckJWTExistence";
 import PersistLogin from "./components/PersistLogin";
 import RequireAuth from "./components/RequireAuth";
 import { createTheme, ThemeProvider } from "@mui/material";
-import { useState } from "react";
+import { useSelector } from "react-redux";
+import { getPreferredTheme } from "./features/messengerSlice";
 
 function App() {
-    const [mode, setMode] = useState("light");
+    const preferredTheme = useSelector(getPreferredTheme);
 
     const theme = createTheme({
         typography: {
             fontFamily: ["Outfit", "sans-serif"].join(","),
         },
         palette: {
-            mode: mode,
+            mode: preferredTheme,
         },
     });
 
@@ -29,10 +30,7 @@ function App() {
                 </Route>
                 <Route element={<PersistLogin />}>
                     <Route element={<RequireAuth />}>
-                        <Route
-                            path="/"
-                            element={<Messenger setMode={setMode} />}
-                        />
+                        <Route path="/" element={<Messenger />} />
                     </Route>
                 </Route>
             </Routes>

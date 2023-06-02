@@ -13,8 +13,8 @@ import {
     getUserInfo,
     getUserProfileImage,
     logoutUser,
+    uploadImageToCloudinary,
 } from "../features/authSlice";
-import { resetAllState } from "../features/resetAllState";
 import {
     getChatList,
     setChatList,
@@ -24,15 +24,21 @@ import {
     setCurrentMessages,
     getOnlineFriends,
     setOnlineFriends,
+    getCurrentFriendIsTypingInfo,
+    setCurrentFriendIsTypingInfo,
     getMessageSent,
     setMessageSentToTrue,
     setMessageSentToFalse,
     getSocketMessage,
     setSocketMessage,
+    getPreferredTheme,
+    setPreferredTheme,
     insertSocketMessageToCurrentMessages,
     updateLatestMessageOnChatList,
     updateLatestMessageStatusOnChatList,
+    updateLastMessageToSeenOnCurrentMessages,
 } from "../features/messengerSlice";
+import { resetAllState } from "../features/resetAllState";
 import useAxiosPrivate from "../hooks/useAxiosPrivate";
 import { useDispatch, useSelector } from "react-redux";
 import { useEffect, useRef, useState } from "react";
@@ -72,10 +78,13 @@ const ChatInfoGridItem = styled(Grid)(({ theme }) => ({
     borderLeftWidth: "thin",
 }));
 
-const Messenger = ({ setMode }) => {
+const Messenger = () => {
     const GET_CHATLIST_URL = "/api/v1/messenger/get-chatlist";
     const GET_CURRENT_MESSAGES_URL = "/api/v1/messenger/get-current-messages";
     const SEND_MESSAGE_URL = "/api/v1/messenger/send-message";
+    const UPDATE_TO_SEEN_URL = "/api/v1/messenger/update-to-seen";
+    const GET_PREFERRED_THEME_URL = "/api/v1/messenger/get-theme";
+    const SET_PREFERRED_THEME_URL = "/api/v1/messenger/set-theme";
 
     const scrollRef = useRef();
     const socket = useRef();
@@ -93,8 +102,10 @@ const Messenger = ({ setMode }) => {
     const currentFriend = useSelector(getCurrentFriend);
     const currentMessages = useSelector(getCurrentMessages);
     const onlineFriends = useSelector(getOnlineFriends);
+    const currentFriendIsTypingInfo = useSelector(getCurrentFriendIsTypingInfo);
     const messageSent = useSelector(getMessageSent);
     const socketMessage = useSelector(getSocketMessage);
+    const preferredTheme = useSelector(getPreferredTheme);
 
     const theme = useTheme();
     const isDarkMode = theme.palette.mode === "dark";
@@ -110,19 +121,113 @@ const Messenger = ({ setMode }) => {
     const [showChatList, setShowChatList] = useState(true);
 
     const [message, setMessage] = useState("");
-    // const [socketMessage, setSocketMessage] = useState("");
+
+    const [image, setImage] = useState(null);
+    const [imagePreview, setImagePreview] = useState(null);
+    const [validImage, setValidImage] = useState(false);
+    const [showUploadError, setShowUploadError] = useState(false);
+
+    const [friendIsTyping, setFriendIsTyping] = useState(null);
 
     const [chatInfoState, setChatInfoState] = useState({
         chatInfoOpen: false,
         chatInfoDrawerOpen: false,
     });
 
+    const handleImageChange = (e) => {
+        const file = e.target.files[0];
+
+        if (file.type !== "image/jpeg" && file.type !== "image/png") {
+            setValidImage(false);
+            setShowUploadError(true);
+            return;
+        }
+
+        setImage(file);
+
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = () => {
+            setImagePreview(reader.result);
+        };
+
+        setValidImage(true);
+    };
+
+    const handleDeleteImagePreview = () => {
+        setImage(null);
+        setImagePreview(null);
+        setValidImage(false);
+        setShowUploadError(false);
+    };
+
+    useEffect(() => {
+        const getPreferredTheme = async () => {
+            const storedTheme = localStorage.getItem("preferredTheme");
+
+            if (storedTheme) {
+                dispatch(setPreferredTheme({ preferredTheme: storedTheme }));
+            } else {
+                try {
+                    const response = await axiosPrivate.get(
+                        GET_PREFERRED_THEME_URL
+                    );
+
+                    const apiPreferredTheme = response.data.preferredTheme;
+                    dispatch(
+                        setPreferredTheme({ preferredTheme: apiPreferredTheme })
+                    );
+                    localStorage.setItem("preferredTheme", apiPreferredTheme);
+                } catch (error) {
+                    await dispatch(logoutUser());
+                    dispatch(resetAllState());
+                    navigate("/login");
+                }
+            }
+        };
+
+        getPreferredTheme();
+    }, []);
+
+    const dispatchSetPreferredTheme = async (theme) => {
+        try {
+            await axiosPrivate.patch(
+                SET_PREFERRED_THEME_URL,
+                JSON.stringify({ preferredTheme: theme })
+            );
+            dispatch(setPreferredTheme({ preferredTheme: theme }));
+            localStorage.setItem("preferredTheme", theme);
+        } catch (err) {
+            await dispatch(logoutUser());
+            dispatch(resetAllState());
+            navigate("/login");
+        }
+    };
+
     useEffect(() => {
         socket.current = io("ws://localhost:8001");
+        // socket.current = io("ws://192.168.1.11:8001");
 
         socket.current.on("receiveMessage", (message) => {
             dispatch(setSocketMessage({ socketMessage: message }));
         });
+
+        socket.current.on("friendIsTypingResponse", (typingInfo) => {
+            setFriendIsTyping(typingInfo);
+        });
+
+        socket.current.on(
+            "messageSeenByFriendResponse",
+            (seenSocketMessage) => {
+                dispatch(
+                    updateLatestMessageStatusOnChatList({
+                        latestMessage: seenSocketMessage,
+                    })
+                );
+
+                dispatch(updateLastMessageToSeenOnCurrentMessages());
+            }
+        );
 
         socket.current.on("getAllOnlineUsers", (onlineUsers) => {
             const onlineFriendsList = onlineUsers
@@ -135,6 +240,14 @@ const Messenger = ({ setMode }) => {
             dispatch(setOnlineFriends({ onlineFriends: onlineFriendsList }));
         });
     }, []);
+
+    useEffect(() => {
+        if (friendIsTyping && friendIsTyping.senderId === currentFriend?._id) {
+            dispatch(
+                setCurrentFriendIsTypingInfo({ typingInfo: friendIsTyping })
+            );
+        }
+    }, [friendIsTyping]);
 
     useEffect(() => {
         socket.current.emit("addUser", userInfo.id, userInfo);
@@ -156,6 +269,7 @@ const Messenger = ({ setMode }) => {
             const response = await axiosPrivate.get(GET_CHATLIST_URL);
             dispatch(setChatList({ chatList: response.data.chatList }));
         } catch (err) {
+            await dispatch(logoutUser());
             dispatch(resetAllState());
             navigate("/login");
         }
@@ -176,6 +290,7 @@ const Messenger = ({ setMode }) => {
                 })
             );
         } catch (error) {
+            await dispatch(logoutUser());
             dispatch(resetAllState());
             navigate("/login");
         }
@@ -187,13 +302,13 @@ const Messenger = ({ setMode }) => {
         }
     }, [currentFriend]);
 
-    const sendMessage = async (messageType) => {
+    const sendMessage = async () => {
         try {
             const senderName = `${userInfo?.firstName} ${userInfo?.lastName}`;
             const response = await axiosPrivate.post(
                 SEND_MESSAGE_URL,
                 JSON.stringify({
-                    messageType,
+                    messageType: "text",
                     content: message,
                     senderId: userInfo?.id,
                     senderName,
@@ -207,10 +322,93 @@ const Messenger = ({ setMode }) => {
 
             setMessage("");
         } catch (error) {
+            await dispatch(logoutUser());
             dispatch(resetAllState());
             navigate("/login");
         }
     };
+
+    const sendImage = async () => {
+        const data = new FormData();
+        data.append("file", image);
+        data.append("upload_preset", "chat-app");
+        data.append("cloud_name", "dkkcgnkep");
+
+        try {
+            const imageSent = await dispatch(
+                uploadImageToCloudinary({ data })
+            ).unwrap();
+
+            const senderName = `${userInfo?.firstName} ${userInfo?.lastName}`;
+
+            const response = await axiosPrivate.post(
+                SEND_MESSAGE_URL,
+                JSON.stringify({
+                    messageType: "image",
+                    content: imageSent,
+                    senderId: userInfo?.id,
+                    senderName,
+                    receiverId: currentFriend?._id,
+                })
+            );
+
+            dispatch(
+                setMessageSentToTrue({ messageSent: response.data.messageSent })
+            );
+
+            setImage(null);
+            setImagePreview(null);
+            setValidImage(false);
+            setShowUploadError(false);
+        } catch (error) {
+            await dispatch(logoutUser());
+            dispatch(resetAllState());
+            navigate("/login");
+        }
+    };
+
+    const updateMessageStatusToSeen = async (socketMessage) => {
+        try {
+            await axiosPrivate.patch(
+                UPDATE_TO_SEEN_URL,
+                JSON.stringify({ message: socketMessage })
+            );
+        } catch {
+            await dispatch(logoutUser());
+            dispatch(resetAllState());
+            navigate("/login");
+        }
+    };
+
+    useEffect(() => {
+        if (
+            currentFriend &&
+            currentMessages.length > 0 &&
+            currentMessages[currentMessages.length - 1].senderId ===
+                currentFriend?._id &&
+            currentMessages[currentMessages.length - 1].status !== "seen"
+        ) {
+            const lastMessageOnCurrentMessages =
+                currentMessages[currentMessages.length - 1];
+
+            updateMessageStatusToSeen(lastMessageOnCurrentMessages);
+
+            const updatedToSeen = {
+                ...lastMessageOnCurrentMessages,
+                status: "seen",
+            };
+
+            dispatch(
+                updateLatestMessageStatusOnChatList({
+                    latestMessage: updatedToSeen,
+                })
+            );
+
+            dispatch(updateLastMessageToSeenOnCurrentMessages());
+
+            socket.current.emit("messageSeenByFriend", updatedToSeen);
+        }
+    }, [currentMessages]);
 
     useEffect(() => {
         if (messageSent) {
@@ -230,35 +428,31 @@ const Messenger = ({ setMode }) => {
     }, [messageSent]);
 
     useEffect(() => {
-        if (socketMessage && currentFriend) {
-            if (
-                socketMessage.senderId === currentFriend?._id &&
-                socketMessage.receiverId === userInfo?.id
-            ) {
-                console.log("The socket message: ", socketMessage);
+        if (
+            socketMessage &&
+            currentFriend &&
+            socketMessage.senderId === currentFriend?._id &&
+            socketMessage.receiverId === userInfo?.id
+        ) {
+            console.log("The socket message: ", socketMessage);
 
-                dispatch(
-                    insertSocketMessageToCurrentMessages({ socketMessage })
-                );
+            dispatch(insertSocketMessageToCurrentMessages({ socketMessage }));
 
-                // Async call
-                // dispatch(updateStatusToSeen({ socketMessage }))
+            // Async call
+            updateMessageStatusToSeen(socketMessage);
 
-                // socket.current.emit("messageSeen", socketMessage);
+            const seenSocketMessage = {
+                ...socketMessage,
+                status: "seen",
+            };
 
-                // At the beginning, we dispatch this UPDATE_FRIEND_MESSAGE action when the logged in user sends a new message to the currentFriend, now we also want to dispatch this action when the logged in user receives a new message from the currentFriend.
+            socket.current.emit("messageSeenByFriend", seenSocketMessage);
 
-                const seenSocketMessage = {
-                    ...socketMessage,
-                    status: "seen",
-                };
-
-                dispatch(
-                    updateLatestMessageStatusOnChatList({
-                        latestMessage: seenSocketMessage,
-                    })
-                );
-            }
+            dispatch(
+                updateLatestMessageStatusOnChatList({
+                    latestMessage: seenSocketMessage,
+                })
+            );
         }
 
         dispatch(setSocketMessage({ socketMessage: "" }));
@@ -287,7 +481,7 @@ const Messenger = ({ setMode }) => {
 
     useEffect(() => {
         scrollRef.current?.scrollIntoView();
-    }, [currentMessages]);
+    }, [currentMessages, currentFriendIsTypingInfo]);
 
     useEffect(() => {
         console.log("lgAbove", lgAbove);
@@ -353,6 +547,15 @@ const Messenger = ({ setMode }) => {
         setMessage(`${message}` + emoji);
     };
 
+    useEffect(() => {
+        if (message) {
+            socket.current.emit("friendIsTyping", {
+                senderId: userInfo?.id,
+                receiverId: currentFriend?._id,
+            });
+        }
+    }, [message]);
+
     const handleAddFriend = () => {
         console.log(friendToAdd);
         setAddFriendDialogOpen(false);
@@ -379,7 +582,8 @@ const Messenger = ({ setMode }) => {
                 userId={userInfo.id}
                 chatList={chatList}
                 handleSelectCurrentFriend={handleSelectCurrentFriend}
-                setMode={setMode}
+                preferredTheme={preferredTheme}
+                dispatchSetPreferredTheme={dispatchSetPreferredTheme}
                 isDarkMode={isDarkMode}
                 mdBelow={mdBelow}
                 showChatList={showChatList}
@@ -416,6 +620,12 @@ const Messenger = ({ setMode }) => {
                         onlineFriends={onlineFriends}
                         setChatInfoState={setChatInfoState}
                         scrollRef={scrollRef}
+                        currentFriendIsTypingInfo={currentFriendIsTypingInfo}
+                        handleImageChange={handleImageChange}
+                        imagePreview={imagePreview}
+                        validImage={validImage}
+                        handleDeleteImagePreview={handleDeleteImagePreview}
+                        sendImage={sendImage}
                     />
                 </ChatBoxGridItem>
                 {chatInfoState.chatInfoOpen && lgAbove && (

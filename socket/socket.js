@@ -48,6 +48,24 @@ io.on("connection", (socket) => {
         }
     });
 
+    socket.on("messageSeenByFriend", (seenSocketMessage) => {
+        const user = findFriend(seenSocketMessage.senderId);
+
+        if (user !== undefined) {
+            socket
+                .to(user.socketId)
+                .emit("messageSeenByFriendResponse", seenSocketMessage);
+        }
+    });
+
+    socket.on("friendIsTyping", (typingInfo) => {
+        const user = findFriend(typingInfo.receiverId);
+
+        if (user !== undefined) {
+            socket.to(user.socketId).emit("friendIsTypingResponse", typingInfo);
+        }
+    });
+
     socket.on("logout", (userId) => {
         userLogout(userId);
         io.emit("getAllOnlineUsers", onlineUsers);

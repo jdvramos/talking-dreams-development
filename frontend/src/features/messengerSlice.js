@@ -5,8 +5,10 @@ const initialState = {
     currentFriend: null,
     currentMessages: [],
     onlineFriends: [],
+    currentFriendIsTypingInfo: null,
     messageSent: false,
     socketMessage: "",
+    preferredTheme: "light",
 };
 
 const messengerSlice = createSlice({
@@ -29,6 +31,10 @@ const messengerSlice = createSlice({
             const { onlineFriends } = action.payload;
             state.onlineFriends = onlineFriends;
         },
+        setCurrentFriendIsTypingInfo(state, action) {
+            const { typingInfo } = action.payload;
+            state.currentFriendIsTypingInfo = typingInfo;
+        },
         setMessageSentToTrue(state, action) {
             const { messageSent } = action.payload;
             state.messageSent = true;
@@ -40,6 +46,10 @@ const messengerSlice = createSlice({
         setSocketMessage(state, action) {
             const { socketMessage } = action.payload;
             state.socketMessage = socketMessage;
+        },
+        setPreferredTheme(state, action) {
+            const { preferredTheme } = action.payload;
+            state.preferredTheme = preferredTheme;
         },
         insertSocketMessageToCurrentMessages(state, action) {
             const { socketMessage } = action.payload;
@@ -56,7 +66,6 @@ const messengerSlice = createSlice({
             state.chatList[indexOfItemToUpdate].latestMessage = latestMessage;
         },
         updateLatestMessageStatusOnChatList(state, action) {
-            // After receiving a socket message
             const { latestMessage } = action.payload;
 
             const indexOfItemToUpdate = state.chatList.findIndex(
@@ -65,6 +74,12 @@ const messengerSlice = createSlice({
                     friend.friendInfo._id === latestMessage.senderId
             );
             state.chatList[indexOfItemToUpdate].latestMessage = latestMessage;
+        },
+        updateLastMessageToSeenOnCurrentMessages(state, _action) {
+            const lastMessageIndex = state.currentMessages.length - 1;
+            if (lastMessageIndex >= 0) {
+                state.currentMessages[lastMessageIndex].status = "seen";
+            }
         },
         resetState(state) {
             Object.assign(state, initialState);
@@ -76,20 +91,26 @@ export const getChatList = (state) => state.messenger.chatList;
 export const getCurrentFriend = (state) => state.messenger.currentFriend;
 export const getCurrentMessages = (state) => state.messenger.currentMessages;
 export const getOnlineFriends = (state) => state.messenger.onlineFriends;
+export const getCurrentFriendIsTypingInfo = (state) =>
+    state.messenger.currentFriendIsTypingInfo;
 export const getMessageSent = (state) => state.messenger.messageSent;
 export const getSocketMessage = (state) => state.messenger.socketMessage;
+export const getPreferredTheme = (state) => state.messenger.preferredTheme;
 
 export const {
     setChatList,
     setCurrentFriend,
     setCurrentMessages,
     setOnlineFriends,
+    setCurrentFriendIsTypingInfo,
     setMessageSentToTrue,
     setMessageSentToFalse,
     setSocketMessage,
+    setPreferredTheme,
     insertSocketMessageToCurrentMessages,
     updateLatestMessageOnChatList,
     updateLatestMessageStatusOnChatList,
+    updateLastMessageToSeenOnCurrentMessages,
     resetState,
 } = messengerSlice.actions;
 

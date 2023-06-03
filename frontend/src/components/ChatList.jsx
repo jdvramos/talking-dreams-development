@@ -32,14 +32,14 @@ const ChatListMain = styled(Box)(({ theme }) => ({
     //     width: "100%",
     // },
     [theme.breakpoints.up("md")]: {
-        width: "250px",
+        width: "310px",
         borderWidth: 0,
         borderStyle: "solid",
         borderColor: theme.palette.divider,
         borderRightWidth: "thin",
     },
     [theme.breakpoints.up("lg")]: {
-        width: "310px",
+        width: "370px",
     },
 }));
 

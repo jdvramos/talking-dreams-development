@@ -5,6 +5,7 @@ import ChatBox from "./ChatBox";
 import ChatInfo from "./ChatInfo";
 import AddFriendDialog from "./AddFriendDialog";
 import FriendRequestSentSnackbar from "./FriendRequestSentSnackbar";
+import InvalidImageSnackbar from "./InvalidImageSnackbar";
 import ChatInfoDrawerMdOnly from "./ChatInfoDrawerMdOnly";
 import ChatInfoDrawerMdBelow from "./ChatInfoDrawerMdBelow";
 import ViewFriendsDialog from "./ViewFriendsDialog";
@@ -129,6 +130,8 @@ const Messenger = () => {
 
     const [friendIsTyping, setFriendIsTyping] = useState(null);
 
+    const [isInitialMount, setIsInitialMount] = useState(true);
+
     const [chatInfoState, setChatInfoState] = useState({
         chatInfoOpen: false,
         chatInfoDrawerOpen: false,
@@ -160,6 +163,20 @@ const Messenger = () => {
         setValidImage(false);
         setShowUploadError(false);
     };
+
+    const changeInfoState = () => {
+        setChatInfoState({
+            chatInfoOpen: true,
+            chatInfoDrawerOpen: false,
+        });
+        setIsInitialMount(false);
+    };
+
+    useEffect(() => {
+        if (isInitialMount && currentFriend) {
+            changeInfoState();
+        }
+    }, [isInitialMount, currentFriend]);
 
     useEffect(() => {
         const getPreferredTheme = async () => {
@@ -309,7 +326,7 @@ const Messenger = () => {
                 SEND_MESSAGE_URL,
                 JSON.stringify({
                     messageType: "text",
-                    content: message,
+                    content: message || "👍",
                     senderId: userInfo?.id,
                     senderName,
                     receiverId: currentFriend?._id,
@@ -512,6 +529,7 @@ const Messenger = () => {
         if (currentFriend) {
             setMessage("");
         }
+
         if (currentFriend === null) {
             setChatInfoState({
                 chatInfoOpen: false,
@@ -675,6 +693,10 @@ const Messenger = () => {
             <FriendRequestSentSnackbar
                 friendRequestSent={friendRequestSent}
                 setFriendRequestSent={setFriendRequestSent}
+            />
+            <InvalidImageSnackbar
+                showUploadError={showUploadError}
+                setShowUploadError={setShowUploadError}
             />
         </MessengerContainer>
     );

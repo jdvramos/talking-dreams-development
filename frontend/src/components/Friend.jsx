@@ -13,6 +13,7 @@ import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 
 import shortenText from "../utils/shortenText";
 import formatMessageTime from "../utils/formatMessageTime";
+import { useEffect } from "react";
 
 const FriendMain = styled(Box)(({ theme }) => ({
     width: "100%",
@@ -77,6 +78,8 @@ const Friend = ({
     const theme = useTheme();
     const isDarkMode = theme.palette.mode === "dark";
     const isMedium = useMediaQuery(theme.breakpoints.only("md"));
+    const isSmall = useMediaQuery(theme.breakpoints.only("sm"));
+    const smBelow = useMediaQuery(theme.breakpoints.down("sm"));
 
     const {
         _id: friendId,
@@ -87,7 +90,14 @@ const Friend = ({
 
     const latestMessage = friend?.latestMessage;
     const messageType = friend?.latestMessage?.messageType;
-    const messageLimit = isMedium ? 13 : 22;
+    const messageLimit = isMedium ? 23 : isSmall ? 38 : smBelow ? 23 : 31;
+
+    // useEffect(() => {
+    //     console.log("isMedium,", isMedium);
+    //     console.log("isSmall,", isSmall);
+    //     console.log("smBelow,", smBelow);
+    //     console.log("messageLimit", messageLimit);
+    // }, [isMedium, isSmall, smBelow]);
 
     return (
         <FriendMain
@@ -193,7 +203,12 @@ const Friend = ({
                             )}
                         </Typography>
                     )}
-                    <Typography variant="caption" fontSize="0.85rem" px="3px">
+                    <Typography
+                        variant="caption"
+                        fontSize="0.85rem"
+                        px="3px"
+                        sx={{ display: latestMessage ? "block" : "none" }}
+                    >
                         •
                     </Typography>
                     <Typography

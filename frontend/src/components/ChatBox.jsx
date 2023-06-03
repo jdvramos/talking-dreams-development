@@ -428,6 +428,7 @@ const ChatBox = ({
                                 aria-label="send like emoji"
                                 size="medium"
                                 sx={{ color: "#1976d2" }}
+                                onClick={() => sendMessage()}
                             >
                                 <ThumbUpIcon fontSize="inherit" />
                             </IconButton>

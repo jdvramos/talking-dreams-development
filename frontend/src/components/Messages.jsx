@@ -68,9 +68,10 @@ const Messages = ({
 
     return (
         <>
-            {currentMessages && currentMessages.length > 0 && (
-                <MessagesMain>
-                    {currentMessages.map((message, index) =>
+            <MessagesMain>
+                {currentMessages &&
+                    currentMessages.length > 0 &&
+                    currentMessages.map((message, index) =>
                         message.senderId === userId ? (
                             <YourMessage
                                 key={message._id}
@@ -204,30 +205,27 @@ const Messages = ({
                             </FriendMessage>
                         )
                     )}
-                    {showFriendIsTyping && (
-                        <FriendMessage ml="14px" ref={scrollRef}>
-                            <Avatar
-                                src={currentFriend?.userProfileImage}
-                                alt={`${currentFriend?.firstName} ${currentFriend?.lastName}`}
-                                sx={{
-                                    width: "33px",
-                                    height: "33px",
-                                }}
-                            />
-                            <Stack>
-                                <MessageBubble
-                                    bgcolor={
-                                        isDarkMode ? "grey.800" : "grey.200"
-                                    }
-                                >
-                                    <FriendIsTyping />
-                                </MessageBubble>
-                            </Stack>
-                        </FriendMessage>
-                    )}
-                    <Box ref={endRef}></Box>
-                </MessagesMain>
-            )}
+                {showFriendIsTyping && (
+                    <FriendMessage ml="14px" ref={scrollRef}>
+                        <Avatar
+                            src={currentFriend?.userProfileImage}
+                            alt={`${currentFriend?.firstName} ${currentFriend?.lastName}`}
+                            sx={{
+                                width: "33px",
+                                height: "33px",
+                            }}
+                        />
+                        <Stack>
+                            <MessageBubble
+                                bgcolor={isDarkMode ? "grey.800" : "grey.200"}
+                            >
+                                <FriendIsTyping />
+                            </MessageBubble>
+                        </Stack>
+                    </FriendMessage>
+                )}
+                <Box ref={endRef}></Box>
+            </MessagesMain>
         </>
     );
 };

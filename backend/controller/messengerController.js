@@ -25,18 +25,19 @@ module.exports.getChatList = async (req, res) => {
 
     const { friends: userFriends } = await User.findById(userId)
         .select("friends")
-        .populate("friends");
+        .populate("friends.friendId"); // Populate the friendId field within the friends array
 
     if (userFriends.length > 0) {
         for (let i = 0; i < userFriends.length; i++) {
             const latestMessage = await getLatestMessage(
                 userId,
-                userFriends[i].id
+                userFriends[i].friendId.id // Access the friendId's _id property
             );
             chatList = [
                 ...chatList,
                 {
-                    friendInfo: userFriends[i],
+                    friendInfo: userFriends[i].friendId,
+                    friendshipTimestamp: userFriends[i].friendshipTimestamp,
                     latestMessage,
                 },
             ];

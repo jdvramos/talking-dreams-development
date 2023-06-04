@@ -78,10 +78,18 @@ function TabPanelReceived(props) {
                                     size="small"
                                     variant="contained"
                                     disableElevation
-                                    color="error"
                                     sx={{
-                                        color: "#fff",
-                                        backgroundColor: "#d32f2f",
+                                        color: isDarkMode
+                                            ? "#fff"
+                                            : "rgba(0, 0, 0, 0.87)",
+                                        backgroundColor: isDarkMode
+                                            ? "rgba(255, 255, 255, 0.1)"
+                                            : "rgb(228, 230, 235)",
+                                        "&:hover": {
+                                            backgroundColor: isDarkMode
+                                                ? "grey.700"
+                                                : "grey.400",
+                                        },
                                     }}
                                 >
                                     Delete
@@ -153,10 +161,18 @@ function TabPanelSent(props) {
                                     variant="contained"
                                     disableElevation
                                     fullWidth
-                                    color="error"
                                     sx={{
-                                        color: "#fff",
-                                        backgroundColor: "#d32f2f",
+                                        color: isDarkMode
+                                            ? "#fff"
+                                            : "rgba(0, 0, 0, 0.87)",
+                                        backgroundColor: isDarkMode
+                                            ? "rgba(255, 255, 255, 0.1)"
+                                            : "rgb(228, 230, 235)",
+                                        "&:hover": {
+                                            backgroundColor: isDarkMode
+                                                ? "grey.700"
+                                                : "grey.400",
+                                        },
                                     }}
                                 >
                                     Cancel
@@ -232,6 +248,11 @@ const ViewFriendsDialog = ({
                     sx={{
                         borderRight: 1,
                         borderColor: "divider",
+                        "& .MuiTabs-scroller": {
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                        },
                     }}
                 >
                     <Tab label="Received" {...a11yProps(0)} />

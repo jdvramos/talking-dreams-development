@@ -10,6 +10,7 @@ import {
     Stack,
     TextField,
     Button,
+    useTheme,
 } from "@mui/material";
 
 const AddFriendDialog = ({
@@ -18,7 +19,10 @@ const AddFriendDialog = ({
     setAddFriendDialogOpen,
     setFriendToAdd,
     handleAddFriend,
+    isDarkMode,
 }) => {
+    const theme = useTheme();
+
     return (
         <Dialog
             open={addFriendDialogOpen}
@@ -77,6 +81,22 @@ const AddFriendDialog = ({
                             }}
                         />
                     )}
+                    ListboxProps={{
+                        sx: {
+                            maxHeight: "200px",
+                            "&::-webkit-scrollbar": {
+                                width: "6px",
+                                backgroundColor:
+                                    theme.palette.background.default,
+                            },
+                            "&::-webkit-scrollbar-thumb": {
+                                backgroundColor: isDarkMode
+                                    ? "#5e5e5e"
+                                    : "#C4C4C4",
+                                borderRadius: "3px",
+                            },
+                        },
+                    }}
                 ></Autocomplete>
             </DialogContent>
             <DialogActions>

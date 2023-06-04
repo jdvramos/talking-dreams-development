@@ -85,7 +85,7 @@ const SearchTextField = styled(TextField)(({ theme }) => ({
 
 const ChatList = ({
     userId,
-    chatList,
+    sortedChatList,
     handleSelectCurrentFriend,
     preferredTheme,
     dispatchSetPreferredTheme,
@@ -293,9 +293,9 @@ const ChatList = ({
                     },
                 }}
             >
-                {chatList &&
-                    chatList.length > 0 &&
-                    chatList.map((friend) => (
+                {sortedChatList &&
+                    sortedChatList.length > 0 &&
+                    sortedChatList.map((friend) => (
                         <Friend
                             key={friend.friendInfo._id}
                             friend={friend}

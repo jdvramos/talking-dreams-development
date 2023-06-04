@@ -70,8 +70,14 @@ const UserSchema = new Schema(
         },
         friends: [
             {
-                type: Schema.Types.ObjectId,
-                ref: "User",
+                friendId: {
+                    type: Schema.Types.ObjectId,
+                    ref: "User",
+                },
+                friendshipTimestamp: {
+                    type: Date,
+                    default: Date.now,
+                },
             },
         ],
         // friendRequestSent: [

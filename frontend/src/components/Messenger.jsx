@@ -121,6 +121,8 @@ const Messenger = () => {
 
     const [showChatList, setShowChatList] = useState(true);
 
+    const [sortedChatList, setSortedChatList] = useState(null);
+
     const [message, setMessage] = useState("");
 
     const [image, setImage] = useState(null);
@@ -177,6 +179,27 @@ const Messenger = () => {
             changeInfoState();
         }
     }, [isInitialMount, currentFriend]);
+
+    const compareDates = (a, b) => {
+        const dateA = a.latestMessage
+            ? a.latestMessage.created_at
+            : a.friendshipTimestamp;
+        const dateB = b.latestMessage
+            ? b.latestMessage.created_at
+            : b.friendshipTimestamp;
+
+        return new Date(dateB) - new Date(dateA);
+    };
+
+    useEffect(() => {
+        if (chatList) {
+            // Creating a copy of the chatList array to avoid error
+            const chatListCopy = [...chatList];
+            const sortedChatList = chatListCopy.sort(compareDates);
+            console.log("sortedChatList", sortedChatList);
+            setSortedChatList(sortedChatList);
+        }
+    }, [chatList]);
 
     useEffect(() => {
         const getPreferredTheme = async () => {
@@ -249,7 +272,11 @@ const Messenger = () => {
         socket.current.on("getAllOnlineUsers", (onlineUsers) => {
             const onlineFriendsList = onlineUsers
                 .filter((user) => user.userInfo.id !== userInfo?.id)
-                .filter((user) => user.userInfo.friends.includes(userInfo?.id))
+                .filter((user) =>
+                    user.userInfo.friends
+                        .map((friend) => friend.friendId)
+                        .includes(userInfo?.id)
+                )
                 .map((user) => user.userInfo.id);
 
             console.log("onlineFriends: ", onlineFriendsList);
@@ -598,7 +625,7 @@ const Messenger = () => {
             />
             <ChatList
                 userId={userInfo.id}
-                chatList={chatList}
+                sortedChatList={sortedChatList}
                 handleSelectCurrentFriend={handleSelectCurrentFriend}
                 preferredTheme={preferredTheme}
                 dispatchSetPreferredTheme={dispatchSetPreferredTheme}
@@ -682,6 +709,7 @@ const Messenger = () => {
                 setAddFriendDialogOpen={setAddFriendDialogOpen}
                 setFriendToAdd={setFriendToAdd}
                 handleAddFriend={handleAddFriend}
+                isDarkMode={isDarkMode}
             />
             <ViewFriendsDialog
                 fakeFriendRequestSent={fakeFriendRequestSent}

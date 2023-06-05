@@ -57,13 +57,33 @@ const messengerSlice = createSlice({
             const { friendRequestReceived } = action.payload;
             state.friendRequestReceived = friendRequestReceived;
         },
-        updateFriendRequestSent(state, action) {
+        appendNewFriendRequestSent(state, action) {
             const { data } = action.payload;
-            state.friendRequestSent.push(data);
+            state.friendRequestSent.unshift(data);
         },
-        updateFriendRequestReceived(state, action) {
+        removeFriendRequestSent(state, action) {
+            const { receiverId } = action.payload;
+            // Filtering does not work (https://stackoverflow.com/questions/67436949/removing-a-value-from-an-array-using-redux-toolkit)
+            state.friendRequestSent.splice(
+                state.friendRequestSent.findIndex(
+                    (sentFR) => sentFR.id === receiverId
+                ),
+                1
+            );
+        },
+        appendNewFriendRequestReceived(state, action) {
             const { data } = action.payload;
-            state.friendRequestReceived.push(data);
+            state.friendRequestReceived.unshift(data);
+        },
+        removeFriendRequestReceived(state, action) {
+            const { senderId } = action.payload;
+            // Filtering does not work (https://stackoverflow.com/questions/67436949/removing-a-value-from-an-array-using-redux-toolkit)
+            state.friendRequestReceived.splice(
+                state.friendRequestReceived.findIndex(
+                    (receivedFR) => receivedFR.id === senderId
+                ),
+                1
+            );
         },
         setPreferredTheme(state, action) {
             const { preferredTheme } = action.payload;
@@ -129,9 +149,11 @@ export const {
     setMessageSentToFalse,
     setSocketMessage,
     setFriendRequestSent,
-    updateFriendRequestSent,
+    appendNewFriendRequestSent,
+    removeFriendRequestSent,
     setFriendRequestReceived,
-    updateFriendRequestReceived,
+    appendNewFriendRequestReceived,
+    removeFriendRequestReceived,
     setPreferredTheme,
     insertSocketMessageToCurrentMessages,
     updateLatestMessageOnChatList,

@@ -29,6 +29,26 @@ const userLogout = (userId) => {
     onlineUsers = onlineUsers.filter((u) => u.userId !== userId);
 };
 
+const updateAnOnlineUser = (userId, newFriendsList) => {
+    // Find the index of the user object that needs to be updated
+    const userIndex = onlineUsers.findIndex((user) => user.userId === userId);
+
+    if (userIndex !== -1) {
+        // Get the user object to be modified
+        const userToBeModified = onlineUsers[userIndex];
+
+        console.log("Before:", userToBeModified);
+
+        // Perform the necessary modifications on the user object
+        userToBeModified.userInfo.friends = newFriendsList;
+
+        console.log("After:", userToBeModified);
+
+        // Update the user object in the onlineUsers array
+        onlineUsers[userIndex] = userToBeModified;
+    }
+};
+
 io.on("connection", (socket) => {
     console.log("A user connected");
 
@@ -72,6 +92,42 @@ io.on("connection", (socket) => {
         if (user !== undefined) {
             socket.to(user.socketId).emit("friendRequestReceived", senderData);
         }
+    });
+
+    socket.on("cancelFriendRequest", (senderId, receiverOfRequestId) => {
+        const user = findFriend(receiverOfRequestId);
+
+        if (user !== undefined) {
+            socket
+                .to(user.socketId)
+                .emit("cancelFriendRequestResponse", senderId);
+        }
+    });
+
+    socket.on("declineFriendRequest", (receiverId, senderOfRequestId) => {
+        const user = findFriend(senderOfRequestId);
+
+        if (user !== undefined) {
+            socket
+                .to(user.socketId)
+                .emit("declineFriendRequestResponse", receiverId);
+        }
+    });
+
+    socket.on("acceptFriendRequest", (receiverId, senderOfRequestId) => {
+        const user = findFriend(senderOfRequestId);
+
+        if (user !== undefined) {
+            socket
+                .to(user.socketId)
+                .emit("acceptFriendRequestResponse", receiverId);
+        }
+    });
+
+    socket.on("getOnlineUsersAgain", (userId, userFriends) => {
+        console.log(userId, userFriends);
+        updateAnOnlineUser(userId, userFriends);
+        io.emit("getAllOnlineUsers", onlineUsers);
     });
 
     socket.on("logout", (userId) => {

@@ -7,7 +7,13 @@ import { useNavigate } from "react-router-dom";
 
 const GET_ALL_USERS_URL = "/api/v1/messenger/get-all-users";
 
-const useUsers = (page = 1, search) => {
+const useUsers = (
+    page = 1,
+    search,
+    friends,
+    friendRequestSent,
+    friendRequestReceived
+) => {
     const axiosPrivate = useAxiosPrivate();
 
     const dispatch = useDispatch();
@@ -28,6 +34,9 @@ const useUsers = (page = 1, search) => {
             const response = await axiosPrivate.get(
                 `${GET_ALL_USERS_URL}${url}`
             );
+
+            console.log("SUCCESS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+
             return response.data.users;
         } catch (error) {
             // MIGHT LEAD TO ERRORS, CHECK LATER!
@@ -53,7 +62,7 @@ const useUsers = (page = 1, search) => {
             .catch((e) => {
                 setIsLoading(false);
             });
-    }, [page, search]);
+    }, [page, search, friends, friendRequestSent, friendRequestReceived]);
 
     return { isLoading, results, setResults, hasNextPage };
 };

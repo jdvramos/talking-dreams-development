@@ -15,6 +15,7 @@ import {
     getUserProfileImage,
     logoutUser,
     uploadImageToCloudinary,
+    accessPersistRoute,
 } from "../features/authSlice";
 import {
     getChatList,
@@ -34,10 +35,12 @@ import {
     setSocketMessage,
     getFriendRequestSent,
     setFriendRequestSent,
-    updateFriendRequestSent,
+    appendNewFriendRequestSent,
+    removeFriendRequestSent,
     getFriendRequestReceived,
     setFriendRequestReceived,
-    updateFriendRequestReceived,
+    appendNewFriendRequestReceived,
+    removeFriendRequestReceived,
     getPreferredTheme,
     setPreferredTheme,
     insertSocketMessageToCurrentMessages,
@@ -87,6 +90,8 @@ const Messenger = () => {
     const GET_FRIEND_REQUEST_RECEIVED_URL = "/api/v1/messenger/get-fr-received";
     const SEND_FRIEND_REQUEST_URL = "/api/v1/messenger/send-fr";
     const CANCEL_SENT_FRIEND_REQUEST_URL = "/api/v1/messenger/cancel-fr";
+    const DECLINE_RECEIVED_FRIEND_REQUEST_URL = "/api/v1/messenger/decline-fr";
+    const ACCEPT_FRIEND_REQUEST_URL = "/api/v1/messenger/accept-fr";
     const GET_PREFERRED_THEME_URL = "/api/v1/messenger/get-theme";
     const SET_PREFERRED_THEME_URL = "/api/v1/messenger/set-theme";
 
@@ -275,6 +280,8 @@ const Messenger = () => {
         );
 
         socket.current.on("getAllOnlineUsers", (onlineUsers) => {
+            console.log("userInfoFriends: ", userInfo.friends);
+
             const onlineFriendsList = onlineUsers
                 .filter((user) => user.userInfo._id !== userInfo?.id)
                 .filter((user) =>
@@ -290,9 +297,33 @@ const Messenger = () => {
         });
 
         socket.current.on("friendRequestReceived", (senderData) => {
-            dispatch(updateFriendRequestReceived({ data: senderData }));
+            dispatch(appendNewFriendRequestReceived({ data: senderData }));
+        });
+
+        socket.current.on("cancelFriendRequestResponse", (senderId) => {
+            dispatch(removeFriendRequestReceived({ senderId }));
+        });
+
+        socket.current.on("declineFriendRequestResponse", (receiverId) => {
+            dispatch(removeFriendRequestSent({ receiverId }));
+        });
+
+        socket.current.on("acceptFriendRequestResponse", async (receiverId) => {
+            dispatch(removeFriendRequestSent({ receiverId }));
+            // Since a new friend was added, we need to re-run the persist route to get the updated userInfo since we need an updated userInfo.friends
+            await dispatch(accessPersistRoute()).unwrap();
+
+            await dispatchSetChatList();
         });
     }, []);
+
+    useEffect(() => {
+        socket.current.emit(
+            "getOnlineUsersAgain",
+            userInfo?.id,
+            userInfo?.friends
+        );
+    }, [userInfo.friends]);
 
     useEffect(() => {
         if (friendIsTyping && friendIsTyping.senderId === currentFriend?._id) {
@@ -680,7 +711,9 @@ const Messenger = () => {
             socket.current.emit("sendFriendRequest", senderData, receiverId);
 
             // if success push the new request to friendRequestSent
-            dispatch(updateFriendRequestSent({ data: response.data.receiver }));
+            dispatch(
+                appendNewFriendRequestSent({ data: response.data.receiver })
+            );
         } catch (err) {
             await dispatch(logoutUser());
             dispatch(resetAllState());
@@ -689,14 +722,83 @@ const Messenger = () => {
     };
 
     const cancelFriendRequest = async (receiverOfRequestId) => {
-        console.log("receiverOfRequestId", receiverOfRequestId);
-
         try {
             const response = await axiosPrivate.patch(
                 CANCEL_SENT_FRIEND_REQUEST_URL,
                 JSON.stringify({
                     receiverOfRequestId,
                 })
+            );
+
+            const senderId = userInfo?.id;
+
+            dispatch(
+                removeFriendRequestSent({ receiverId: receiverOfRequestId })
+            );
+
+            socket.current.emit(
+                "cancelFriendRequest",
+                senderId,
+                receiverOfRequestId
+            );
+        } catch (error) {
+            await dispatch(logoutUser());
+            dispatch(resetAllState());
+            navigate("/login");
+        }
+    };
+
+    const declineFriendRequest = async (senderOfRequestId) => {
+        try {
+            const response = await axiosPrivate.patch(
+                DECLINE_RECEIVED_FRIEND_REQUEST_URL,
+                JSON.stringify({
+                    senderOfRequestId,
+                })
+            );
+
+            const receiverId = userInfo?.id;
+
+            dispatch(
+                removeFriendRequestReceived({ senderId: senderOfRequestId })
+            );
+
+            socket.current.emit(
+                "declineFriendRequest",
+                receiverId,
+                senderOfRequestId
+            );
+        } catch (error) {
+            await dispatch(logoutUser());
+            dispatch(resetAllState());
+            navigate("/login");
+        }
+    };
+
+    const acceptFriendRequest = async (senderOfRequestId) => {
+        try {
+            const response = await axiosPrivate.post(
+                ACCEPT_FRIEND_REQUEST_URL,
+                JSON.stringify({
+                    senderOfRequestId,
+                })
+            );
+
+            const receiverId = userInfo?.id;
+
+            dispatch(
+                removeFriendRequestReceived({ senderId: senderOfRequestId })
+            );
+
+            // Since a new friend was added, we need to re-run the persist route to get the updated userInfo since we need an updated userInfo.friends
+            await dispatch(accessPersistRoute()).unwrap();
+
+            await dispatchSetChatList();
+
+            socket.current.emit(
+                "acceptFriendRequest",
+                receiverId,
+                senderOfRequestId
             );
         } catch (error) {
             await dispatch(logoutUser());
@@ -804,11 +906,11 @@ const Messenger = () => {
             <AddFriendDialog
                 addFriendDialogOpen={addFriendDialogOpen}
                 setAddFriendDialogOpen={setAddFriendDialogOpen}
-                friendToAdd={friendToAdd}
-                setFriendToAdd={setFriendToAdd}
-                handleAddFriend={handleAddFriend}
                 isDarkMode={isDarkMode}
                 sendFriendRequest={sendFriendRequest}
+                friends={userInfo?.friends}
+                friendRequestSent={friendRequestSent}
+                friendRequestReceived={friendRequestReceived}
             />
             <ViewFriendsDialog
                 friendRequestSent={friendRequestSent}
@@ -817,6 +919,8 @@ const Messenger = () => {
                 setViewFriendsDialogOpen={setViewFriendsDialogOpen}
                 isDarkMode={isDarkMode}
                 cancelFriendRequest={cancelFriendRequest}
+                declineFriendRequest={declineFriendRequest}
+                acceptFriendRequest={acceptFriendRequest}
             />
             <FriendRequestSentSnackbar
                 friendRequestSent={friendRequestSent_}

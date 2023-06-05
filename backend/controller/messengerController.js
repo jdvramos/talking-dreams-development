@@ -173,6 +173,8 @@ module.exports.getFriendRequestSent = async (req, res) => {
             timeSent: user.timeSent,
         }));
 
+        friendRequestSentData.sort((a, b) => b.timeSent - a.timeSent);
+
         res.status(StatusCodes.OK).json({
             friendRequestSent: friendRequestSentData,
         });
@@ -199,6 +201,10 @@ module.exports.getFriendRequestReceived = async (req, res) => {
             userData: { ...user.userId._doc },
             timeReceived: user.timeReceived,
         }));
+
+        friendRequestReceivedData.sort(
+            (a, b) => b.timeReceived - a.timeReceived
+        );
 
         res.status(StatusCodes.OK).json({
             friendRequestReceived: friendRequestReceivedData,
@@ -284,6 +290,10 @@ module.exports.cancelSentFriendRequest = async (req, res) => {
         { new: true } // Retrieve the updated document
     );
 
+    if (!updatedUserData) {
+        throw new NotFoundError("User not found.");
+    }
+
     // Update the receiver's friendRequestReceived array
     const updatedReceiverOfTheRequestData = await User.findOneAndUpdate(
         { _id: receiverOfRequestId },
@@ -295,11 +305,117 @@ module.exports.cancelSentFriendRequest = async (req, res) => {
         { new: true } // Retrieve the updated document
     );
 
-    console.log("updatedUserData", updatedUserData);
-    console.log(
-        "updatedReceiverOfTheRequestData",
-        updatedReceiverOfTheRequestData
+    if (!updatedReceiverOfTheRequestData) {
+        throw new NotFoundError("Receiver not found.");
+    }
+
+    res.sendStatus(StatusCodes.OK);
+};
+
+module.exports.declineReceivedFriendRequest = async (req, res) => {
+    const userEmail = req.email;
+
+    const { _id: userId } = await User.findOne({ email: userEmail });
+
+    if (!userId) {
+        throw new NotFoundError("User not found.");
+    }
+
+    const { senderOfRequestId } = req.body;
+
+    // Update the user's friendRequestReceived array
+    const updatedUserData = await User.findOneAndUpdate(
+        { _id: userId },
+        {
+            $pull: {
+                friendRequestReceived: { userId: senderOfRequestId },
+            },
+        },
+        { new: true } // Retrieve the updated document
     );
+
+    if (!updatedUserData) {
+        throw new NotFoundError("User not found.");
+    }
+
+    // Update the sender's friendRequestSent array
+    const updatedSenderOfTheRequestData = await User.findOneAndUpdate(
+        { _id: senderOfRequestId },
+        {
+            $pull: {
+                friendRequestSent: { userId: userId },
+            },
+        },
+        { new: true } // Retrieve the updated document
+    );
+
+    if (!updatedSenderOfTheRequestData) {
+        throw new NotFoundError("Receiver not found.");
+    }
+
+    console.log("updatedUserData", updatedUserData);
+    console.log("updatedSenderOfTheRequestData", updatedSenderOfTheRequestData);
+
+    res.sendStatus(StatusCodes.OK);
+};
+
+module.exports.acceptReceivedFriendRequest = async (req, res) => {
+    const userEmail = req.email;
+
+    const { _id: userId } = await User.findOne({ email: userEmail });
+
+    if (!userId) {
+        throw new NotFoundError("User not found.");
+    }
+
+    const { senderOfRequestId } = req.body;
+
+    const friendshipTimestamp = Date.now();
+
+    // Update the user's friendRequestReceived array
+    const updatedUserData = await User.findOneAndUpdate(
+        { _id: userId },
+        {
+            $pull: {
+                friendRequestReceived: { userId: senderOfRequestId },
+            },
+            $push: {
+                friends: {
+                    friendId: senderOfRequestId,
+                    friendshipTimestamp,
+                },
+            },
+        },
+        { new: true } // Retrieve the updated document
+    );
+
+    if (!updatedUserData) {
+        throw new NotFoundError("User not found.");
+    }
+
+    // Update the sender's friendRequestSent array
+    const updatedSenderOfTheRequestData = await User.findOneAndUpdate(
+        { _id: senderOfRequestId },
+        {
+            $pull: {
+                friendRequestSent: { userId: userId },
+            },
+            $push: {
+                friends: {
+                    friendId: userId,
+                    friendshipTimestamp,
+                },
+            },
+        },
+        { new: true } // Retrieve the updated document
+    );
+
+    if (!updatedSenderOfTheRequestData) {
+        throw new NotFoundError("Receiver not found.");
+    }
+
+    console.log("updatedUserData", updatedUserData);
+    console.log("updatedSenderOfTheRequestData", updatedSenderOfTheRequestData);
 
     res.sendStatus(StatusCodes.OK);
 };

@@ -20,11 +20,11 @@ import UserOption from "./UserOption";
 const AddFriendDialog = ({
     addFriendDialogOpen,
     setAddFriendDialogOpen,
-    friendToAdd,
-    setFriendToAdd,
-    handleAddFriend,
     isDarkMode,
     sendFriendRequest,
+    friends,
+    friendRequestSent,
+    friendRequestReceived,
 }) => {
     const theme = useTheme();
 
@@ -34,7 +34,10 @@ const AddFriendDialog = ({
     const [userOptions, setUserOptions] = useState([]);
     const { isLoading, results, setResults, hasNextPage } = useUsers(
         page,
-        search
+        search,
+        friends,
+        friendRequestSent,
+        friendRequestReceived
     );
 
     const defaultValue = {
@@ -52,7 +55,6 @@ const AddFriendDialog = ({
         updated_at: "2023-06-04T13:03:25.083Z",
     };
 
-    // const [value, setValue] = useState(userOptions[0] || defaultValue);
     const [value, setValue] = useState(null);
 
     const [inputValue, setInputValue] = useState("");
@@ -132,6 +134,11 @@ const AddFriendDialog = ({
         setResults([]);
         setPage(1);
     }, [search]);
+
+    useEffect(() => {
+        setUserOptions([]);
+        setResults([]);
+    }, [friends, friendRequestSent, friendRequestReceived]);
 
     useEffect(() => {
         console.log("PAGE", page);

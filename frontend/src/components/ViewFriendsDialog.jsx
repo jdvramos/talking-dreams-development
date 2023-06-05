@@ -18,7 +18,15 @@ import { useEffect, useState } from "react";
 import formatMessageTime from "../utils/formatMessageTime";
 
 function TabPanelReceived(props) {
-    const { value, index, data, theme, isDarkMode } = props;
+    const {
+        value,
+        index,
+        data,
+        theme,
+        isDarkMode,
+        declineFriendRequest,
+        acceptFriendRequest,
+    } = props;
 
     return (
         <Stack
@@ -93,6 +101,11 @@ function TabPanelReceived(props) {
                                         backgroundColor: "#1976d2",
                                         marginRight: "8px",
                                     }}
+                                    onClick={() =>
+                                        acceptFriendRequest(
+                                            person?.userData?._id
+                                        )
+                                    }
                                 >
                                     Accept
                                 </Button>
@@ -113,6 +126,11 @@ function TabPanelReceived(props) {
                                                 : "grey.400",
                                         },
                                     }}
+                                    onClick={() =>
+                                        declineFriendRequest(
+                                            person?.userData?._id
+                                        )
+                                    }
                                 >
                                     Delete
                                 </Button>
@@ -268,6 +286,8 @@ const ViewFriendsDialog = ({
     setViewFriendsDialogOpen,
     isDarkMode,
     cancelFriendRequest,
+    declineFriendRequest,
+    acceptFriendRequest,
 }) => {
     const theme = useTheme();
 
@@ -332,7 +352,8 @@ const ViewFriendsDialog = ({
                     data={friendRequestReceived}
                     theme={theme}
                     isDarkMode={isDarkMode}
-                    cancelFriendRequest={cancelFriendRequest}
+                    declineFriendRequest={declineFriendRequest}
+                    acceptFriendRequest={acceptFriendRequest}
                 />
                 <TabPanelSent
                     value={value}

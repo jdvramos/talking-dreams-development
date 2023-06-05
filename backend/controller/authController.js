@@ -114,8 +114,8 @@ module.exports.loginUser = async (req, res) => {
             lastName: user.lastName,
             email: user.email,
             friends: user.friends,
-            friendRequestSent: user.friendRequestSent || [],
-            friendRequestReceived: user.friendRequestReceived || [],
+            friendRequestSent: user.friendRequestSent,
+            friendRequestReceived: user.friendRequestReceived,
         },
         accessToken,
         userProfileImage: user.userProfileImage,
@@ -124,6 +124,8 @@ module.exports.loginUser = async (req, res) => {
 
 module.exports.logoutUser = async (req, res) => {
     const cookies = req.cookies;
+
+    console.log(cookies?.jwt);
 
     if (!cookies?.jwt) {
         return res.sendStatus(StatusCodes.NO_CONTENT);

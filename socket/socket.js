@@ -66,6 +66,14 @@ io.on("connection", (socket) => {
         }
     });
 
+    socket.on("sendFriendRequest", (senderData, receiverId) => {
+        const user = findFriend(receiverId);
+
+        if (user !== undefined) {
+            socket.to(user.socketId).emit("friendRequestReceived", senderData);
+        }
+    });
+
     socket.on("logout", (userId) => {
         userLogout(userId);
         io.emit("getAllOnlineUsers", onlineUsers);

@@ -1,9 +1,9 @@
-const formatMessageTime = function (messageTime) {
+const formatMessageTime = function (time) {
     const currentTime = new Date();
-    messageTime = new Date(messageTime);
+    time = new Date(time);
 
     const distanceInSeconds = Math.floor(
-        (currentTime.getTime() - messageTime.getTime()) / 1000
+        (currentTime.getTime() - time.getTime()) / 1000
     );
 
     if (distanceInSeconds < 60) {

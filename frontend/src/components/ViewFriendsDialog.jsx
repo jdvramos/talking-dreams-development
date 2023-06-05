@@ -12,8 +12,10 @@ import {
     TextField,
     Button,
     useTheme,
+    useMediaQuery,
 } from "@mui/material";
 import { useEffect, useState } from "react";
+import formatMessageTime from "../utils/formatMessageTime";
 
 function TabPanelReceived(props) {
     const { value, index, data, theme, isDarkMode } = props;
@@ -27,6 +29,7 @@ function TabPanelReceived(props) {
             flex={1}
             gap={2}
             sx={{
+                alignItems: "center",
                 overflowY: "auto",
                 "&::-webkit-scrollbar": {
                     width: "6px",
@@ -41,11 +44,16 @@ function TabPanelReceived(props) {
             }}
         >
             {value === index && data.length > 0 ? (
-                data.map((person, index) => (
-                    <Stack direction="row" gap={1} key={index} mx={1}>
+                data.map((person) => (
+                    <Stack
+                        direction="row"
+                        gap={1}
+                        key={person?.userData?._id}
+                        mx={1}
+                    >
                         <Avatar
-                            src={person?.userProfileImage}
-                            alt={`${person?.firstName} ${person?.lastName}`}
+                            src={person?.userData?.userProfileImage}
+                            alt={`${person?.userData?.firstName} ${person?.userData?.lastName}`}
                             sx={{
                                 alignSelf: "center",
                                 width: "70px",
@@ -54,11 +62,25 @@ function TabPanelReceived(props) {
                         />
                         <Stack flex={1}>
                             <Stack mb={1}>
-                                <Typography
-                                    fontWeight={500}
-                                >{`${person?.firstName} ${person?.lastName}`}</Typography>
+                                <Stack
+                                    direction="row"
+                                    justifyContent="space-between"
+                                    alignItems="center"
+                                >
+                                    <Typography
+                                        fontWeight={500}
+                                    >{`${person?.userData?.firstName} ${person?.userData?.lastName}`}</Typography>
+                                    <Typography
+                                        variant="caption"
+                                        color="text.secondary"
+                                    >
+                                        {formatMessageTime(
+                                            person?.timeReceived
+                                        )}
+                                    </Typography>
+                                </Stack>
                                 <Typography variant="caption">
-                                    {person?.email}
+                                    {person?.userData?.email}
                                 </Typography>
                             </Stack>
                             <Stack direction="row">
@@ -110,7 +132,15 @@ function TabPanelReceived(props) {
 }
 
 function TabPanelSent(props) {
-    const { value, index, data, theme, isDarkMode } = props;
+    const {
+        value,
+        index,
+        data,
+        theme,
+        isDarkMode,
+        isDisplayBelow400px,
+        cancelFriendRequest,
+    } = props;
 
     return (
         <Stack
@@ -121,6 +151,7 @@ function TabPanelSent(props) {
             flex={1}
             gap={2}
             sx={{
+                alignItems: !isDisplayBelow400px && "center",
                 overflowY: "auto",
                 "&::-webkit-scrollbar": {
                     width: "6px",
@@ -135,11 +166,24 @@ function TabPanelSent(props) {
             }}
         >
             {value === index && data.length > 0 ? (
-                data.map((person, index) => (
-                    <Stack direction="row" gap={1} key={index} mx={1}>
+                data.map((person) => (
+                    <Stack
+                        flex={isDisplayBelow400px ? 1 : 0}
+                        direction="row"
+                        gap={1}
+                        key={person?.userData?._id}
+                        mx={1}
+                        sx={
+                            !isDisplayBelow400px
+                                ? {
+                                      width: "222px",
+                                  }
+                                : {}
+                        }
+                    >
                         <Avatar
-                            src={person?.userProfileImage}
-                            alt={`${person?.firstName} ${person?.lastName}`}
+                            src={person?.userData?.userProfileImage}
+                            alt={`${person?.userData?.firstName} ${person?.userData?.lastName}`}
                             sx={{
                                 alignSelf: "center",
                                 width: "70px",
@@ -148,11 +192,24 @@ function TabPanelSent(props) {
                         />
                         <Stack flex={1}>
                             <Stack mb={1}>
-                                <Typography
-                                    fontWeight={500}
-                                >{`${person?.firstName} ${person?.lastName}`}</Typography>
+                                <Stack
+                                    direction="row"
+                                    justifyContent="space-between"
+                                    alignItems="center"
+                                >
+                                    <Typography
+                                        fontWeight={500}
+                                    >{`${person?.userData?.firstName} ${person?.userData?.lastName}`}</Typography>
+                                    <Typography
+                                        variant="caption"
+                                        color="text.secondary"
+                                    >
+                                        {formatMessageTime(person?.timeSent)}
+                                    </Typography>
+                                </Stack>
+
                                 <Typography variant="caption">
-                                    {person?.email}
+                                    {person?.userData?.email}
                                 </Typography>
                             </Stack>
                             <Stack direction="row">
@@ -174,6 +231,11 @@ function TabPanelSent(props) {
                                                 : "grey.400",
                                         },
                                     }}
+                                    onClick={() =>
+                                        cancelFriendRequest(
+                                            person?.userData?._id
+                                        )
+                                    }
                                 >
                                     Cancel
                                 </Button>
@@ -200,13 +262,16 @@ function a11yProps(index) {
 }
 
 const ViewFriendsDialog = ({
-    fakeFriendRequestSent,
-    fakeFriendRequestReceived,
+    friendRequestSent,
+    friendRequestReceived,
     viewFriendsDialogOpen,
     setViewFriendsDialogOpen,
     isDarkMode,
+    cancelFriendRequest,
 }) => {
     const theme = useTheme();
+
+    const isDisplayBelow400px = useMediaQuery("(max-width:400px)");
 
     const [value, setValue] = useState(0);
 
@@ -214,17 +279,13 @@ const ViewFriendsDialog = ({
         setValue(newValue);
     };
 
-    useEffect(() => {
-        console.log("value", value);
-    }, [value]);
-
     return (
         <Dialog
             open={viewFriendsDialogOpen}
             onClose={() => setViewFriendsDialogOpen(false)}
             sx={{
                 "& .MuiDialog-paper": {
-                    width: "350px",
+                    width: "400px",
                     height: "300px",
                 },
             }}
@@ -246,6 +307,7 @@ const ViewFriendsDialog = ({
                     value={value}
                     onChange={handleChangeTab}
                     sx={{
+                        width: isDisplayBelow400px ? "50px" : "90px",
                         borderRight: 1,
                         borderColor: "divider",
                         "& .MuiTabs-scroller": {
@@ -255,22 +317,31 @@ const ViewFriendsDialog = ({
                         },
                     }}
                 >
-                    <Tab label="Received" {...a11yProps(0)} />
-                    <Tab label="Sent" {...a11yProps(1)} />
+                    <Tab
+                        label={isDisplayBelow400px ? "R" : "Received"}
+                        {...a11yProps(0)}
+                    />
+                    <Tab
+                        label={isDisplayBelow400px ? "S" : "Sent"}
+                        {...a11yProps(1)}
+                    />
                 </Tabs>
                 <TabPanelReceived
                     value={value}
                     index={0}
-                    data={fakeFriendRequestReceived}
+                    data={friendRequestReceived}
                     theme={theme}
                     isDarkMode={isDarkMode}
+                    cancelFriendRequest={cancelFriendRequest}
                 />
                 <TabPanelSent
                     value={value}
                     index={1}
-                    data={fakeFriendRequestSent}
+                    data={friendRequestSent}
                     theme={theme}
                     isDarkMode={isDarkMode}
+                    isDisplayBelow400px={isDisplayBelow400px}
+                    cancelFriendRequest={cancelFriendRequest}
                 />
             </Box>
             <DialogActions>

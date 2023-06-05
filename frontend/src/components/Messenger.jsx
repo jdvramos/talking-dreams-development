@@ -32,6 +32,12 @@ import {
     setMessageSentToFalse,
     getSocketMessage,
     setSocketMessage,
+    getFriendRequestSent,
+    setFriendRequestSent,
+    updateFriendRequestSent,
+    getFriendRequestReceived,
+    setFriendRequestReceived,
+    updateFriendRequestReceived,
     getPreferredTheme,
     setPreferredTheme,
     insertSocketMessageToCurrentMessages,
@@ -45,13 +51,6 @@ import { useDispatch, useSelector } from "react-redux";
 import { useEffect, useRef, useState } from "react";
 
 import { io } from "socket.io-client";
-
-// FOR TESTING PURPOSES ONLY DELETE LATER
-import {
-    fakeFriends,
-    fakeFriendRequestSent,
-    fakeFriendRequestReceived,
-} from "../fakedata/fakedata";
 
 const MessengerContainer = styled(Stack)(({ theme }) => ({
     height: "100%",
@@ -84,6 +83,10 @@ const Messenger = () => {
     const GET_CURRENT_MESSAGES_URL = "/api/v1/messenger/get-current-messages";
     const SEND_MESSAGE_URL = "/api/v1/messenger/send-message";
     const UPDATE_TO_SEEN_URL = "/api/v1/messenger/update-to-seen";
+    const GET_FRIEND_REQUEST_SENT_URL = "/api/v1/messenger/get-fr-sent";
+    const GET_FRIEND_REQUEST_RECEIVED_URL = "/api/v1/messenger/get-fr-received";
+    const SEND_FRIEND_REQUEST_URL = "/api/v1/messenger/send-fr";
+    const CANCEL_SENT_FRIEND_REQUEST_URL = "/api/v1/messenger/cancel-fr";
     const GET_PREFERRED_THEME_URL = "/api/v1/messenger/get-theme";
     const SET_PREFERRED_THEME_URL = "/api/v1/messenger/set-theme";
 
@@ -106,6 +109,8 @@ const Messenger = () => {
     const currentFriendIsTypingInfo = useSelector(getCurrentFriendIsTypingInfo);
     const messageSent = useSelector(getMessageSent);
     const socketMessage = useSelector(getSocketMessage);
+    const friendRequestSent = useSelector(getFriendRequestSent);
+    const friendRequestReceived = useSelector(getFriendRequestReceived);
     const preferredTheme = useSelector(getPreferredTheme);
 
     const theme = useTheme();
@@ -116,8 +121,8 @@ const Messenger = () => {
     const xlAbove = useMediaQuery(theme.breakpoints.up("xl"));
     const mdOnly = useMediaQuery(theme.breakpoints.only("md"));
 
-    const [friendToAdd, setFriendToAdd] = useState("");
-    const [friendRequestSent, setFriendRequestSent] = useState(false);
+    const [friendToAdd, setFriendToAdd] = useState({});
+    const [friendRequestSent_, setFriendRequestSent_] = useState(false);
 
     const [showChatList, setShowChatList] = useState(true);
 
@@ -271,7 +276,7 @@ const Messenger = () => {
 
         socket.current.on("getAllOnlineUsers", (onlineUsers) => {
             const onlineFriendsList = onlineUsers
-                .filter((user) => user.userInfo.id !== userInfo?.id)
+                .filter((user) => user.userInfo._id !== userInfo?.id)
                 .filter((user) =>
                     user.userInfo.friends
                         .map((friend) => friend.friendId)
@@ -282,6 +287,10 @@ const Messenger = () => {
             console.log("onlineFriends: ", onlineFriendsList);
 
             dispatch(setOnlineFriends({ onlineFriends: onlineFriendsList }));
+        });
+
+        socket.current.on("friendRequestReceived", (senderData) => {
+            dispatch(updateFriendRequestReceived({ data: senderData }));
         });
     }, []);
 
@@ -603,8 +612,97 @@ const Messenger = () => {
 
     const handleAddFriend = () => {
         console.log(friendToAdd);
+        // Call api...
+
         setAddFriendDialogOpen(false);
-        setFriendRequestSent(true);
+        setFriendRequestSent_(true);
+        setFriendToAdd({});
+    };
+
+    const dispatchSetFriendRequestSent = async () => {
+        try {
+            const response = await axiosPrivate.get(
+                GET_FRIEND_REQUEST_SENT_URL
+            );
+            dispatch(
+                setFriendRequestSent({
+                    friendRequestSent: response.data.friendRequestSent,
+                })
+            );
+        } catch (err) {
+            await dispatch(logoutUser());
+            dispatch(resetAllState());
+            navigate("/login");
+        }
+    };
+
+    useEffect(() => {
+        dispatchSetFriendRequestSent();
+    }, []);
+
+    const dispatchSetFriendRequestReceived = async () => {
+        try {
+            const response = await axiosPrivate.get(
+                GET_FRIEND_REQUEST_RECEIVED_URL
+            );
+            dispatch(
+                setFriendRequestReceived({
+                    friendRequestReceived: response.data.friendRequestReceived,
+                })
+            );
+        } catch (err) {
+            await dispatch(logoutUser());
+            dispatch(resetAllState());
+            navigate("/login");
+        }
+    };
+
+    useEffect(() => {
+        dispatchSetFriendRequestReceived();
+    }, []);
+
+    const sendFriendRequest = async (chosenUser) => {
+        try {
+            const response = await axiosPrivate.post(
+                SEND_FRIEND_REQUEST_URL,
+                JSON.stringify({
+                    receiverId: chosenUser._id,
+                })
+            );
+
+            console.log("sender", response.data.sender);
+            console.log("receiver", response.data.receiver);
+
+            const senderData = response.data.sender;
+            const receiverId = response.data.receiver.userData._id;
+
+            // emit an event
+            socket.current.emit("sendFriendRequest", senderData, receiverId);
+
+            // if success push the new request to friendRequestSent
+            dispatch(updateFriendRequestSent({ data: response.data.receiver }));
+        } catch (err) {
+            await dispatch(logoutUser());
+            dispatch(resetAllState());
+            navigate("/login");
+        }
+    };
+
+    const cancelFriendRequest = async (receiverOfRequestId) => {
+        console.log("receiverOfRequestId", receiverOfRequestId);
+
+        try {
+            const response = await axiosPrivate.patch(
+                CANCEL_SENT_FRIEND_REQUEST_URL,
+                JSON.stringify({
+                    receiverOfRequestId,
+                })
+            );
+        } catch (error) {
+            await dispatch(logoutUser());
+            dispatch(resetAllState());
+            navigate("/login");
+        }
     };
 
     const handleLogout = async () => {
@@ -704,23 +802,25 @@ const Messenger = () => {
             </Grid>
             {/* modals and alerts */}
             <AddFriendDialog
-                fakeFriends={fakeFriends}
                 addFriendDialogOpen={addFriendDialogOpen}
                 setAddFriendDialogOpen={setAddFriendDialogOpen}
+                friendToAdd={friendToAdd}
                 setFriendToAdd={setFriendToAdd}
                 handleAddFriend={handleAddFriend}
                 isDarkMode={isDarkMode}
+                sendFriendRequest={sendFriendRequest}
             />
             <ViewFriendsDialog
-                fakeFriendRequestSent={fakeFriendRequestSent}
-                fakeFriendRequestReceived={fakeFriendRequestReceived}
+                friendRequestSent={friendRequestSent}
+                friendRequestReceived={friendRequestReceived}
                 viewFriendsDialogOpen={viewFriendsDialogOpen}
                 setViewFriendsDialogOpen={setViewFriendsDialogOpen}
                 isDarkMode={isDarkMode}
+                cancelFriendRequest={cancelFriendRequest}
             />
             <FriendRequestSentSnackbar
-                friendRequestSent={friendRequestSent}
-                setFriendRequestSent={setFriendRequestSent}
+                friendRequestSent={friendRequestSent_}
+                setFriendRequestSent={setFriendRequestSent_}
             />
             <InvalidImageSnackbar
                 showUploadError={showUploadError}

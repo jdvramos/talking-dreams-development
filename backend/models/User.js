@@ -80,18 +80,30 @@ const UserSchema = new Schema(
                 },
             },
         ],
-        // friendRequestSent: [
-        //     {
-        //         type: Schema.Types.ObjectId,
-        //         ref: "User",
-        //     },
-        // ],
-        // friendRequestReceived: [
-        //     {
-        //         type: Schema.Types.ObjectId,
-        //         ref: "User",
-        //     },
-        // ],
+        friendRequestSent: [
+            {
+                userId: {
+                    type: Schema.Types.ObjectId,
+                    ref: "User",
+                },
+                timeSent: {
+                    type: Date,
+                    default: Date.now,
+                },
+            },
+        ],
+        friendRequestReceived: [
+            {
+                userId: {
+                    type: Schema.Types.ObjectId,
+                    ref: "User",
+                },
+                timeReceived: {
+                    type: Date,
+                    default: Date.now,
+                },
+            },
+        ],
     },
     { timestamps: { createdAt: "created_at", updatedAt: "updated_at" } }
 );

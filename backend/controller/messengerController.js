@@ -104,6 +104,206 @@ module.exports.updateMessageStatusToSeen = async (req, res) => {
     res.sendStatus(StatusCodes.OK);
 };
 
+module.exports.getAllUsers = async (req, res) => {
+    const userEmail = req.email;
+
+    const { _id: userId } = await User.findOne({ email: userEmail });
+
+    if (!userId) {
+        throw new NotFoundError("User not found.");
+    }
+
+    const { page, search } = req.query;
+
+    const queryObject = {};
+
+    if (search) {
+        // Create a regex pattern for the search query
+        const regex = new RegExp(search.replace(/\s+/, ""), "i");
+
+        // Add the regex pattern to the query object
+        queryObject.$or = [
+            { firstName: regex },
+            { lastName: regex },
+            { email: regex },
+        ];
+    }
+
+    // Get the user's friend IDs
+    const { friends, friendRequestSent, friendRequestReceived } =
+        await User.findById(userId, {
+            friends: 1,
+            friendRequestSent: 1,
+            friendRequestReceived: 1,
+        });
+
+    // Exclude the user's friends and the logged in user
+    queryObject._id = {
+        $nin: [
+            userId,
+            ...friends.map((friend) => friend.friendId),
+            ...friendRequestSent.map((request) => request.userId),
+            ...friendRequestReceived.map((request) => request.userId),
+        ],
+    };
+
+    const users = await User.find(queryObject)
+        .skip((page - 1) * 5)
+        .limit(5);
+
+    res.status(StatusCodes.OK).json({ users });
+};
+
+module.exports.getFriendRequestSent = async (req, res) => {
+    const userEmail = req.email;
+
+    const { _id: userId } = await User.findOne({ email: userEmail });
+
+    if (!userId) {
+        throw new NotFoundError("User not found.");
+    }
+
+    const { friendRequestSent } = await User.findById(userId)
+        .select("friendRequestSent")
+        .populate("friendRequestSent.userId");
+
+    if (friendRequestSent.length > 0) {
+        const friendRequestSentData = friendRequestSent.map((user) => ({
+            userData: { ...user.userId._doc },
+            timeSent: user.timeSent,
+        }));
+
+        res.status(StatusCodes.OK).json({
+            friendRequestSent: friendRequestSentData,
+        });
+    } else {
+        res.status(StatusCodes.OK).json({ friendRequestSent: [] });
+    }
+};
+
+module.exports.getFriendRequestReceived = async (req, res) => {
+    const userEmail = req.email;
+
+    const { _id: userId } = await User.findOne({ email: userEmail });
+
+    if (!userId) {
+        throw new NotFoundError("User not found.");
+    }
+
+    const { friendRequestReceived } = await User.findById(userId)
+        .select("friendRequestReceived")
+        .populate("friendRequestReceived.userId");
+
+    if (friendRequestReceived.length > 0) {
+        const friendRequestReceivedData = friendRequestReceived.map((user) => ({
+            userData: { ...user.userId._doc },
+            timeReceived: user.timeReceived,
+        }));
+
+        res.status(StatusCodes.OK).json({
+            friendRequestReceived: friendRequestReceivedData,
+        });
+    } else {
+        res.status(StatusCodes.OK).json({ friendRequestReceived: [] });
+    }
+};
+
+module.exports.sendFriendRequest = async (req, res) => {
+    const userEmail = req.email;
+
+    const { _id: userId } = await User.findOne({ email: userEmail });
+
+    if (!userId) {
+        throw new NotFoundError("User not found.");
+    }
+
+    const { receiverId } = req.body;
+
+    const receiver = await User.findOne({ _id: receiverId });
+
+    if (!receiver) {
+        throw new NotFoundError("Receiver not found.");
+    }
+
+    const timeSent = new Date();
+
+    // Update the user's friendRequestSent array
+    const updatedUserData = await User.findOneAndUpdate(
+        { _id: userId },
+        {
+            $push: {
+                friendRequestSent: { userId: receiverId, timeSent },
+            },
+        },
+        { new: true } // Retrieve the updated document
+    );
+
+    // Update the receiver's friendRequestReceived array
+    const updatedReceiverData = await User.findOneAndUpdate(
+        { _id: receiverId },
+        {
+            $push: {
+                friendRequestReceived: {
+                    userId: userId,
+                    timeReceived: timeSent,
+                },
+            },
+        },
+        { new: true } // Retrieve the updated document
+    );
+
+    if (!updatedReceiverData) {
+        throw new NotFoundError("Receiver not found.");
+    }
+
+    res.status(StatusCodes.OK).json({
+        receiver: { userData: updatedReceiverData, timeSent },
+        sender: { userData: updatedUserData, timeReceived: timeSent },
+    });
+};
+
+module.exports.cancelSentFriendRequest = async (req, res) => {
+    const userEmail = req.email;
+
+    const { _id: userId } = await User.findOne({ email: userEmail });
+
+    if (!userId) {
+        throw new NotFoundError("User not found.");
+    }
+
+    const { receiverOfRequestId } = req.body;
+
+    // Update the user's friendRequestSent array
+    const updatedUserData = await User.findOneAndUpdate(
+        { _id: userId },
+        {
+            $pull: {
+                friendRequestSent: { userId: receiverOfRequestId },
+            },
+        },
+        { new: true } // Retrieve the updated document
+    );
+
+    // Update the receiver's friendRequestReceived array
+    const updatedReceiverOfTheRequestData = await User.findOneAndUpdate(
+        { _id: receiverOfRequestId },
+        {
+            $pull: {
+                friendRequestReceived: { userId: userId },
+            },
+        },
+        { new: true } // Retrieve the updated document
+    );
+
+    console.log("updatedUserData", updatedUserData);
+    console.log(
+        "updatedReceiverOfTheRequestData",
+        updatedReceiverOfTheRequestData
+    );
+
+    res.sendStatus(StatusCodes.OK);
+};
+
 module.exports.getTheme = async (req, res) => {
     const userEmail = req.email;
 

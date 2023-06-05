@@ -1267,6 +1267,26 @@ export const fakeFriendRequestSent = [
 
 export const fakeFriendRequestReceived = [
     {
+        _id: "11",
+        firstName: "Kim",
+        lastName: "Wexler",
+        email: "kimwexler@gmail.com",
+        userProfileImage:
+            "https://res.cloudinary.com/dkkcgnkep/image/upload/v1683365247/pkjr7u2eyndcfx41jsvq.png",
+        created_at: "",
+        updated_at: "",
+    },
+    {
+        _id: "12",
+        firstName: "Lalo",
+        lastName: "Salamanca",
+        email: "lalosalamanca@gmail.com",
+        userProfileImage:
+            "https://res.cloudinary.com/dkkcgnkep/image/upload/v1683522756/gkbssjdzgynfpfixe6ss.png",
+        created_at: "",
+        updated_at: "",
+    },
+    {
         _id: "13",
         firstName: "Walter",
         lastName: "White",

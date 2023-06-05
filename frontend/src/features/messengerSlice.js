@@ -8,6 +8,8 @@ const initialState = {
     currentFriendIsTypingInfo: null,
     messageSent: false,
     socketMessage: "",
+    friendRequestSent: [],
+    friendRequestReceived: [],
     preferredTheme: "light",
 };
 
@@ -46,6 +48,22 @@ const messengerSlice = createSlice({
         setSocketMessage(state, action) {
             const { socketMessage } = action.payload;
             state.socketMessage = socketMessage;
+        },
+        setFriendRequestSent(state, action) {
+            const { friendRequestSent } = action.payload;
+            state.friendRequestSent = friendRequestSent;
+        },
+        setFriendRequestReceived(state, action) {
+            const { friendRequestReceived } = action.payload;
+            state.friendRequestReceived = friendRequestReceived;
+        },
+        updateFriendRequestSent(state, action) {
+            const { data } = action.payload;
+            state.friendRequestSent.push(data);
+        },
+        updateFriendRequestReceived(state, action) {
+            const { data } = action.payload;
+            state.friendRequestReceived.push(data);
         },
         setPreferredTheme(state, action) {
             const { preferredTheme } = action.payload;
@@ -95,6 +113,10 @@ export const getCurrentFriendIsTypingInfo = (state) =>
     state.messenger.currentFriendIsTypingInfo;
 export const getMessageSent = (state) => state.messenger.messageSent;
 export const getSocketMessage = (state) => state.messenger.socketMessage;
+export const getFriendRequestSent = (state) =>
+    state.messenger.friendRequestSent;
+export const getFriendRequestReceived = (state) =>
+    state.messenger.friendRequestReceived;
 export const getPreferredTheme = (state) => state.messenger.preferredTheme;
 
 export const {
@@ -106,6 +128,10 @@ export const {
     setMessageSentToTrue,
     setMessageSentToFalse,
     setSocketMessage,
+    setFriendRequestSent,
+    updateFriendRequestSent,
+    setFriendRequestReceived,
+    updateFriendRequestReceived,
     setPreferredTheme,
     insertSocketMessageToCurrentMessages,
     updateLatestMessageOnChatList,

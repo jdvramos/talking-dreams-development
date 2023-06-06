@@ -35,9 +35,6 @@ const useUsers = (
             const response = await axiosPrivate.get(
                 `${GET_ALL_USERS_URL}${url}`
             );
-
-            console.log("SUCCESS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
-
             return response.data.users;
         } catch (error) {
             // MIGHT LEAD TO ERRORS, CHECK LATER!

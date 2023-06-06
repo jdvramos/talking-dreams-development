@@ -1,26 +1,33 @@
 import { Alert, Snackbar } from "@mui/material";
-import { BsSendCheck } from "react-icons/bs";
+import { RiMessage3Line } from "react-icons/ri";
 
-const FriendRequestSentSnackbar = ({
-    showFriendRequestSentAlert,
-    setShowFriendRequestSentAlert,
+const NewMessageReceivedSnackbar = ({
+    showNewMessageReceivedAlert,
+    setShowNewMessageReceivedAlert,
     isDarkMode,
-    smBelow,
+    mdBelow,
 }) => {
     return (
         <Snackbar
-            open={showFriendRequestSentAlert}
-            onClose={() => setShowFriendRequestSentAlert(false)}
+            open={showNewMessageReceivedAlert.showAlert}
+            onClose={() =>
+                setShowNewMessageReceivedAlert({
+                    showAlert: false,
+                    senderName: "",
+                })
+            }
             autoHideDuration={4000}
             anchorOrigin={{
-                vertical: "bottom",
-                horizontal: "left",
+                vertical: "top",
+                horizontal: "right",
             }}
-            sx={smBelow ? { width: "350px", bottom: "20px" } : {}}
+            style={{
+                top: mdBelow ? "55px" : "20px",
+            }}
         >
             <Alert
                 iconMapping={{
-                    info: <BsSendCheck size={20} />,
+                    info: <RiMessage3Line size={24} />,
                 }}
                 severity="info"
                 sx={{
@@ -34,10 +41,10 @@ const FriendRequestSentSnackbar = ({
                     },
                 }}
             >
-                Friend request sent successfully!
+                {`${showNewMessageReceivedAlert.senderName} sent a new message`}
             </Alert>
         </Snackbar>
     );
 };
 
-export default FriendRequestSentSnackbar;
+export default NewMessageReceivedSnackbar;

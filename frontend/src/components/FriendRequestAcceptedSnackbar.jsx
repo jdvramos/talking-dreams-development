@@ -1,26 +1,33 @@
 import { Alert, Snackbar } from "@mui/material";
-import { BsSendCheck } from "react-icons/bs";
+import { FaRegHandshake } from "react-icons/fa";
 
-const FriendRequestSentSnackbar = ({
-    showFriendRequestSentAlert,
-    setShowFriendRequestSentAlert,
+const FriendRequestAcceptedSnackbar = ({
+    showNewFriendAlert,
+    setShowNewFriendAlert,
     isDarkMode,
-    smBelow,
+    mdBelow,
 }) => {
     return (
         <Snackbar
-            open={showFriendRequestSentAlert}
-            onClose={() => setShowFriendRequestSentAlert(false)}
+            open={showNewFriendAlert.showAlert}
+            onClose={() =>
+                setShowNewFriendAlert({
+                    showAlert: false,
+                    newFriendName: "",
+                })
+            }
             autoHideDuration={4000}
             anchorOrigin={{
-                vertical: "bottom",
-                horizontal: "left",
+                vertical: "top",
+                horizontal: "right",
             }}
-            sx={smBelow ? { width: "350px", bottom: "20px" } : {}}
+            style={{
+                top: mdBelow ? "55px" : "20px",
+            }}
         >
             <Alert
                 iconMapping={{
-                    info: <BsSendCheck size={20} />,
+                    info: <FaRegHandshake size={24} />,
                 }}
                 severity="info"
                 sx={{
@@ -34,10 +41,10 @@ const FriendRequestSentSnackbar = ({
                     },
                 }}
             >
-                Friend request sent successfully!
+                {`${showNewFriendAlert.newFriendName} has accepted your friend request`}
             </Alert>
         </Snackbar>
     );
 };
 
-export default FriendRequestSentSnackbar;
+export default FriendRequestAcceptedSnackbar;

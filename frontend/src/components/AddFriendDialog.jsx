@@ -6,8 +6,6 @@ import {
     Typography,
     Autocomplete,
     Box,
-    Avatar,
-    Stack,
     TextField,
     Button,
     useTheme,
@@ -26,6 +24,7 @@ const AddFriendDialog = ({
     friendRequestSent,
     friendRequestReceived,
     newUsersList,
+    setShowFriendRequestSentAlert,
 }) => {
     const theme = useTheme();
 
@@ -84,7 +83,13 @@ const AddFriendDialog = ({
 
     const handleClick = () => {
         sendFriendRequest(value);
+        setShowFriendRequestSentAlert(true);
         setValue(null);
+    };
+
+    const handleCloseDialogue = () => {
+        setValue(null);
+        setAddFriendDialogOpen(false);
     };
 
     useEffect(() => {
@@ -112,6 +117,10 @@ const AddFriendDialog = ({
     }, [results]);
 
     useEffect(() => {
+        console.log("CURRENT VAL: ", value);
+    }, [value]);
+
+    useEffect(() => {
         setUserOptions([]);
         setResults([]);
         setPage(1);
@@ -127,12 +136,12 @@ const AddFriendDialog = ({
     return (
         <Dialog
             open={addFriendDialogOpen}
-            onClose={() => setAddFriendDialogOpen(false)}
+            onClose={handleCloseDialogue}
             fullWidth
         >
             <DialogTitle id="dialog-title">Add a friend</DialogTitle>
             <DialogContent>
-                <Typography mb={1}>Search by name or email:</Typography>
+                <Typography mb="3px">Search by name or email:</Typography>
                 <Autocomplete
                     size="small"
                     options={userOptions}
@@ -251,10 +260,8 @@ const AddFriendDialog = ({
                 ></Autocomplete>
             </DialogContent>
             <DialogActions>
-                <Button onClick={() => setAddFriendDialogOpen(false)}>
-                    Cancel
-                </Button>
-                <Button onClick={handleClick} autoFocus>
+                <Button onClick={handleCloseDialogue}>Cancel</Button>
+                <Button onClick={handleClick} autoFocus disabled={!value}>
                     Add
                 </Button>
             </DialogActions>

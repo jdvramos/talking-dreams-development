@@ -98,6 +98,10 @@ const UserSchema = new Schema(
                     type: Schema.Types.ObjectId,
                     ref: "User",
                 },
+                requestSeen: {
+                    type: Boolean,
+                    default: false,
+                },
                 timeReceived: {
                     type: Date,
                     default: Date.now,

@@ -12,6 +12,7 @@ const {
     cancelSentFriendRequest,
     declineReceivedFriendRequest,
     acceptReceivedFriendRequest,
+    updateAllFriendRequestsToSeen,
     getTheme,
     setTheme,
 } = require("../controller/messengerController");
@@ -27,6 +28,7 @@ router.post("/send-fr", sendFriendRequest);
 router.patch("/cancel-fr", cancelSentFriendRequest);
 router.patch("/decline-fr", declineReceivedFriendRequest);
 router.post("/accept-fr", acceptReceivedFriendRequest);
+router.patch("/update-all-fr-to-seen", updateAllFriendRequestsToSeen);
 router.get("/get-theme", getTheme);
 router.patch("/set-theme", setTheme);
 

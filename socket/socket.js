@@ -48,10 +48,22 @@ const updateAnOnlineUser = (userId, newFriendsList) => {
 io.on("connection", (socket) => {
     console.log("A user connected");
 
-    // The addUser event will fire whenever a user successfully logs in (when Messenger.jsx mounts) and then after we will fire the getUser event
     socket.on("addUser", (userId, userInfo) => {
         addUser(userId, socket.id, userInfo);
-        io.emit("getAllOnlineUsers", onlineUsers);
+
+        const idsOfFriendsOfUser = userInfo.friends.map(
+            (friend) => friend.friendId
+        );
+
+        const socketIds = onlineUsers
+            .filter((user) => idsOfFriendsOfUser.includes(user.userId))
+            .map((user) => user.socketId);
+
+        socket.emit("getAllOnlineUsers", onlineUsers);
+
+        socketIds.forEach((socketId) =>
+            socket.to(socketId).emit("getAllOnlineUsers", onlineUsers)
+        );
     });
 
     socket.on("sendMessage", (message) => {
@@ -82,11 +94,13 @@ io.on("connection", (socket) => {
         }
     });
 
-    socket.on("sendFriendRequest", (senderData, receiverId) => {
+    socket.on("sendFriendRequest", (senderData, receiverId, senderFullName) => {
         const user = findFriend(receiverId);
 
         if (user !== undefined) {
-            socket.to(user.socketId).emit("friendRequestReceived", senderData);
+            socket
+                .to(user.socketId)
+                .emit("friendRequestReceived", senderData, senderFullName);
         }
     });
 
@@ -110,33 +124,94 @@ io.on("connection", (socket) => {
         }
     });
 
-    socket.on("acceptFriendRequest", (receiverId, senderOfRequestId) => {
-        const user = findFriend(senderOfRequestId);
+    socket.on(
+        "acceptFriendRequest",
+        (receiverId, receiverFullName, senderOfRequestId) => {
+            const user = findFriend(senderOfRequestId);
 
-        if (user !== undefined) {
-            socket
-                .to(user.socketId)
-                .emit("acceptFriendRequestResponse", receiverId);
+            if (user !== undefined) {
+                socket
+                    .to(user.socketId)
+                    .emit(
+                        "acceptFriendRequestResponse",
+                        receiverId,
+                        receiverFullName
+                    );
+            }
         }
-    });
+    );
 
     socket.on("getOnlineUsersAgain", (userId, userFriends) => {
         updateAnOnlineUser(userId, userFriends);
-        io.emit("getAllOnlineUsers", onlineUsers);
+
+        const userData = findFriend(userId);
+
+        const idsOfFriendsOfUser = userData.userInfo.friends.map(
+            (friend) => friend.friendId
+        );
+
+        const socketIds = onlineUsers
+            .filter((user) => idsOfFriendsOfUser.includes(user.userId))
+            .map((user) => user.socketId);
+
+        socketIds.forEach((socketId) =>
+            socket.to(socketId).emit("getAllOnlineUsers", onlineUsers)
+        );
     });
 
     socket.on("newUserRegistered", (userInfo) => {
-        io.emit("newUserRegisteredReaction", userInfo);
+        io.emit("newUserRegisteredResponse", userInfo);
     });
 
     socket.on("logout", (userId) => {
-        userLogout(userId);
-        io.emit("getAllOnlineUsers", onlineUsers);
+        const dataOfUserLoggingOut = onlineUsers.find(
+            (user) => user.userId === userId
+        );
+
+        if (dataOfUserLoggingOut) {
+            const idsOfFriendsOfUserLoggingOut =
+                dataOfUserLoggingOut.userInfo.friends.map(
+                    (friend) => friend.friendId
+                );
+
+            const socketIds = onlineUsers
+                .filter((user) =>
+                    idsOfFriendsOfUserLoggingOut.includes(user.userId)
+                )
+                .map((user) => user.socketId);
+
+            userLogout(userId); // removes user from the onlineUsers
+
+            socketIds.forEach((socketId) =>
+                socket.to(socketId).emit("getAllOnlineUsers", onlineUsers)
+            );
+        }
     });
 
     socket.on("disconnect", () => {
         console.log("A user disconnected...");
-        userRemove(socket.id);
-        io.emit("getAllOnlineUsers", onlineUsers);
+
+        const dataOfUserLoggingOut = onlineUsers.find(
+            (user) => user.socketId === socket.id
+        );
+
+        if (dataOfUserLoggingOut) {
+            const idsOfFriendsOfUserLoggingOut =
+                dataOfUserLoggingOut.userInfo.friends.map(
+                    (friend) => friend.friendId
+                );
+
+            const socketIds = onlineUsers
+                .filter((user) =>
+                    idsOfFriendsOfUserLoggingOut.includes(user.userId)
+                )
+                .map((user) => user.socketId);
+
+            userRemove(socket.id);
+
+            socketIds.forEach((socketId) =>
+                socket.to(socketId).emit("getAllOnlineUsers", onlineUsers)
+            );
+        }
     });
 });

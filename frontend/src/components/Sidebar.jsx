@@ -55,16 +55,36 @@ const Sidebar = ({
     mdBelow,
     handleLogout,
     setViewFriendsDialogOpen,
+    hasUnopenedFriendRequest,
+    updateAllFriendRequestsReceivedToSeen,
 }) => {
+    const handleOpenFriendsDialogue = () => {
+        updateAllFriendRequestsReceivedToSeen();
+        setViewFriendsDialogOpen(true);
+    };
+
     return (
         <SideBarMain display={mdBelow ? "none" : "flex"}>
             <UpperIconButtonContainer>
                 <Tooltip title="Friends" placement="right">
                     <IconButtonRounded
                         size="large"
-                        onClick={() => setViewFriendsDialogOpen(true)}
+                        onClick={handleOpenFriendsDialogue}
                     >
-                        <PeopleIcon />
+                        {hasUnopenedFriendRequest ? (
+                            <Badge
+                                variant="dot"
+                                sx={{
+                                    "& .MuiBadge-badge": {
+                                        backgroundColor: "#1976d2",
+                                    },
+                                }}
+                            >
+                                <PeopleIcon />
+                            </Badge>
+                        ) : (
+                            <PeopleIcon />
+                        )}
                     </IconButtonRounded>
                 </Tooltip>
                 <Tooltip title="Sign out" placement="right">

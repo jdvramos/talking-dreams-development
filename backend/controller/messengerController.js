@@ -199,6 +199,7 @@ module.exports.getFriendRequestReceived = async (req, res) => {
     if (friendRequestReceived.length > 0) {
         const friendRequestReceivedData = friendRequestReceived.map((user) => ({
             userData: { ...user.userId._doc },
+            requestSeen: user.requestSeen,
             timeReceived: user.timeReceived,
         }));
 
@@ -251,6 +252,7 @@ module.exports.sendFriendRequest = async (req, res) => {
             $push: {
                 friendRequestReceived: {
                     userId: userId,
+                    requestSeen: false,
                     timeReceived: timeSent,
                 },
             },
@@ -264,7 +266,11 @@ module.exports.sendFriendRequest = async (req, res) => {
 
     res.status(StatusCodes.OK).json({
         receiver: { userData: updatedReceiverData, timeSent },
-        sender: { userData: updatedUserData, timeReceived: timeSent },
+        sender: {
+            userData: updatedUserData,
+            requestSeen: false,
+            timeReceived: timeSent,
+        },
     });
 };
 
@@ -416,6 +422,23 @@ module.exports.acceptReceivedFriendRequest = async (req, res) => {
 
     console.log("updatedUserData", updatedUserData);
     console.log("updatedSenderOfTheRequestData", updatedSenderOfTheRequestData);
+
+    res.sendStatus(StatusCodes.OK);
+};
+
+module.exports.updateAllFriendRequestsToSeen = async (req, res) => {
+    const userEmail = req.email;
+
+    const { _id: userId } = await User.findOne({ email: userEmail });
+
+    if (!userId) {
+        throw new NotFoundError("User not found.");
+    }
+
+    await User.updateOne(
+        { _id: userId },
+        { $set: { "friendRequestReceived.$[].requestSeen": true } }
+    );
 
     res.sendStatus(StatusCodes.OK);
 };

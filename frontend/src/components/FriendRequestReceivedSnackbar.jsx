@@ -1,26 +1,33 @@
 import { Alert, Snackbar } from "@mui/material";
-import { BsSendCheck } from "react-icons/bs";
+import { BiMailSend } from "react-icons/bi";
 
-const FriendRequestSentSnackbar = ({
-    showFriendRequestSentAlert,
-    setShowFriendRequestSentAlert,
+const FriendRequestReceivedSnackbar = ({
+    showFriendRequestReceivedAlert,
+    setShowFriendRequestReceivedAlert,
     isDarkMode,
-    smBelow,
+    mdBelow,
 }) => {
     return (
         <Snackbar
-            open={showFriendRequestSentAlert}
-            onClose={() => setShowFriendRequestSentAlert(false)}
+            open={showFriendRequestReceivedAlert.showAlert}
+            onClose={() =>
+                setShowFriendRequestReceivedAlert({
+                    showAlert: false,
+                    senderName: "",
+                })
+            }
             autoHideDuration={4000}
             anchorOrigin={{
-                vertical: "bottom",
-                horizontal: "left",
+                vertical: "top",
+                horizontal: "right",
             }}
-            sx={smBelow ? { width: "350px", bottom: "20px" } : {}}
+            style={{
+                top: mdBelow ? "55px" : "20px",
+            }}
         >
             <Alert
                 iconMapping={{
-                    info: <BsSendCheck size={20} />,
+                    info: <BiMailSend size={24} />,
                 }}
                 severity="info"
                 sx={{
@@ -34,10 +41,10 @@ const FriendRequestSentSnackbar = ({
                     },
                 }}
             >
-                Friend request sent successfully!
+                {`${showFriendRequestReceivedAlert.senderName} has sent you a friend request`}
             </Alert>
         </Snackbar>
     );
 };
 
-export default FriendRequestSentSnackbar;
+export default FriendRequestReceivedSnackbar;

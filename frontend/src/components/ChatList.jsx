@@ -12,6 +12,7 @@ import {
     Switch,
     InputAdornment,
     useTheme,
+    Badge,
 } from "@mui/material";
 
 import DarkModeIcon from "@mui/icons-material/DarkMode";
@@ -90,6 +91,7 @@ const ChatList = ({
     preferredTheme,
     dispatchSetPreferredTheme,
     isDarkMode,
+    smBelow,
     mdBelow,
     showChatList,
     currentFriend,
@@ -98,6 +100,8 @@ const ChatList = ({
     setAddFriendDialogOpen,
     setViewFriendsDialogOpen,
     dispatchSetChatList,
+    hasUnopenedFriendRequest,
+    updateAllFriendRequestsReceivedToSeen,
 }) => {
     const theme = useTheme();
 
@@ -143,6 +147,11 @@ const ChatList = ({
         }
     }, [mdBelow]);
 
+    const handleOpenFriendsDialogue = () => {
+        updateAllFriendRequestsReceivedToSeen();
+        setViewFriendsDialogOpen(true);
+    };
+
     return (
         <ChatListMain
             sx={showChatList ? { width: "100%" } : { display: "none" }}
@@ -158,23 +167,6 @@ const ChatList = ({
                         Chats
                     </Typography>
                     <Box pr="20px">
-                        <IconButton
-                            size="small"
-                            sx={{
-                                backgroundColor: isDarkMode
-                                    ? "grey.800"
-                                    : "grey.200",
-                                marginRight: "13px",
-                                "&:hover": {
-                                    backgroundColor: isDarkMode
-                                        ? "grey.700"
-                                        : "grey.300",
-                                },
-                            }}
-                            onClick={() => dispatchSetChatList()}
-                        >
-                            <RefreshIcon />
-                        </IconButton>
                         <IconButton
                             id="menu-btn"
                             onClick={handleClickMenu}
@@ -236,9 +228,23 @@ const ChatList = ({
                                             : "grey.300",
                                     },
                                 }}
-                                onClick={() => setViewFriendsDialogOpen(true)}
+                                onClick={handleOpenFriendsDialogue}
                             >
-                                <PeopleIcon />
+                                {hasUnopenedFriendRequest ? (
+                                    <Badge
+                                        variant="dot"
+                                        sx={{
+                                            "& .MuiBadge-badge": {
+                                                backgroundColor: "#1976d2",
+                                                right: "-3px",
+                                            },
+                                        }}
+                                    >
+                                        <PeopleIcon />
+                                    </Badge>
+                                ) : (
+                                    <PeopleIcon />
+                                )}
                             </IconButton>
                         )}
                         <IconButton
@@ -305,6 +311,7 @@ const ChatList = ({
                             }
                             currentFriend={currentFriend}
                             onlineFriends={onlineFriends}
+                            smBelow={smBelow}
                         />
                     ))}
             </CLFriends>

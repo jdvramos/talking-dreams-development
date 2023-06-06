@@ -9,6 +9,11 @@ import InvalidImageSnackbar from "./InvalidImageSnackbar";
 import ChatInfoDrawerMdOnly from "./ChatInfoDrawerMdOnly";
 import ChatInfoDrawerMdBelow from "./ChatInfoDrawerMdBelow";
 import ViewFriendsDialog from "./ViewFriendsDialog";
+import FriendRequestAcceptedSnackbar from "./FriendRequestAcceptedSnackbar";
+import FriendRequestReceivedSnackbar from "./FriendRequestReceivedSnackbar";
+import NewMessageReceivedSnackbar from "./NewMessageReceivedSnackbar";
+import useSound from "use-sound";
+import newMessage from "../sounds/newMessage.mp3";
 import { useNavigate, useLocation } from "react-router-dom";
 import {
     getUserInfo,
@@ -92,6 +97,8 @@ const Messenger = () => {
     const CANCEL_SENT_FRIEND_REQUEST_URL = "/api/v1/messenger/cancel-fr";
     const DECLINE_RECEIVED_FRIEND_REQUEST_URL = "/api/v1/messenger/decline-fr";
     const ACCEPT_FRIEND_REQUEST_URL = "/api/v1/messenger/accept-fr";
+    const UPDATE_ALL_FRIEND_REQUESTS_TO_SEEN =
+        "/api/v1/messenger/update-all-fr-to-seen";
     const GET_PREFERRED_THEME_URL = "/api/v1/messenger/get-theme";
     const SET_PREFERRED_THEME_URL = "/api/v1/messenger/set-theme";
 
@@ -129,9 +136,7 @@ const Messenger = () => {
     const lgAbove = useMediaQuery(theme.breakpoints.up("lg"));
     const xlAbove = useMediaQuery(theme.breakpoints.up("xl"));
     const mdOnly = useMediaQuery(theme.breakpoints.only("md"));
-
-    const [friendToAdd, setFriendToAdd] = useState({});
-    const [friendRequestSent_, setFriendRequestSent_] = useState(false);
+    const smBelow = useMediaQuery(theme.breakpoints.down("sm"));
 
     const [showChatList, setShowChatList] = useState(true);
 
@@ -147,15 +152,75 @@ const Messenger = () => {
     const [friendIsTyping, setFriendIsTyping] = useState(null);
 
     const [isInitialMount, setIsInitialMount] = useState(true);
+    const [isInitialMount2, setIsInitialMount2] = useState(true);
 
     const [newUsersList, setNewUsersList] = useState([]);
 
     const [getOnlineUsersAgain, setGetOnlineUsersAgain] = useState(false);
 
+    const [newMessageReceivedSound] = useSound(newMessage);
+
     const [chatInfoState, setChatInfoState] = useState({
         chatInfoOpen: false,
         chatInfoDrawerOpen: false,
     });
+
+    const [showNewFriendAlert, setShowNewFriendAlert] = useState({
+        showAlert: false,
+        newFriendName: "",
+    });
+
+    const [showFriendRequestSentAlert, setShowFriendRequestSentAlert] =
+        useState(false);
+
+    const [showFriendRequestReceivedAlert, setShowFriendRequestReceivedAlert] =
+        useState({
+            showAlert: false,
+            senderName: "",
+        });
+
+    const [showNewMessageReceivedAlert, setShowNewMessageReceivedAlert] =
+        useState({
+            showAlert: false,
+            senderName: "",
+        });
+
+    const [hasUnopenedFriendRequest, setHasUnopenedFriendRequest] =
+        useState(false);
+
+    const [addFriendDialogOpen, setAddFriendDialogOpen] = useState(false);
+    const [viewFriendsDialogOpen, setViewFriendsDialogOpen] = useState(false);
+
+    const updateAllFriendRequestsReceivedToSeen = async () => {
+        try {
+            await axiosPrivate.patch(UPDATE_ALL_FRIEND_REQUESTS_TO_SEEN);
+
+            dispatchSetFriendRequestReceived();
+        } catch (error) {
+            await dispatch(logoutUser());
+            dispatch(resetAllState());
+            navigate("/login");
+        }
+    };
+
+    useEffect(() => {
+        if (viewFriendsDialogOpen) {
+            setIsInitialMount2(false);
+        }
+    }, [viewFriendsDialogOpen]);
+
+    useEffect(() => {
+        if (!isInitialMount2 && !viewFriendsDialogOpen) {
+            updateAllFriendRequestsReceivedToSeen();
+        }
+    }, [isInitialMount2, viewFriendsDialogOpen]);
+
+    useEffect(() => {
+        const turnOnBlueDot =
+            friendRequestReceived.length > 0 &&
+            friendRequestReceived.some((fr) => !fr.requestSeen);
+        setHasUnopenedFriendRequest(turnOnBlueDot);
+    }, [friendRequestReceived]);
 
     const handleImageChange = (e) => {
         const file = e.target.files[0];
@@ -308,9 +373,16 @@ const Messenger = () => {
             dispatch(setOnlineFriends({ onlineFriends: onlineFriendsList }));
         });
 
-        socket.current.on("friendRequestReceived", (senderData) => {
-            dispatch(appendNewFriendRequestReceived({ data: senderData }));
-        });
+        socket.current.on(
+            "friendRequestReceived",
+            (senderData, senderFullName) => {
+                dispatch(appendNewFriendRequestReceived({ data: senderData }));
+                setShowFriendRequestReceivedAlert({
+                    showAlert: true,
+                    senderName: senderFullName,
+                });
+            }
+        );
 
         socket.current.on("cancelFriendRequestResponse", (senderId) => {
             dispatch(removeFriendRequestReceived({ senderId }));
@@ -320,18 +392,26 @@ const Messenger = () => {
             dispatch(removeFriendRequestSent({ receiverId }));
         });
 
-        socket.current.on("acceptFriendRequestResponse", async (receiverId) => {
-            dispatch(removeFriendRequestSent({ receiverId }));
+        socket.current.on(
+            "acceptFriendRequestResponse",
+            async (receiverId, receiverFullName) => {
+                dispatch(removeFriendRequestSent({ receiverId }));
 
-            setGetOnlineUsersAgain(true);
+                setGetOnlineUsersAgain(true);
 
-            // Since a new friend was added, we need to re-run the persist route to get the updated userInfo since we need an updated userInfo.friends, there's a useEffect somewhere that gets all online users again when userInfo.friends changes.
-            await dispatch(accessPersistRoute()).unwrap();
+                // Since a new friend was added, we need to re-run the persist route to get the updated userInfo since we need an updated userInfo.friends, there's a useEffect somewhere that gets all online users again when userInfo.friends changes.
+                await dispatch(accessPersistRoute()).unwrap();
 
-            await dispatchSetChatList();
-        });
+                setShowNewFriendAlert({
+                    showAlert: true,
+                    newFriendName: receiverFullName,
+                });
 
-        socket.current.on("newUserRegisteredReaction", (userInfo) => {
+                await dispatchSetChatList();
+            }
+        );
+
+        socket.current.on("newUserRegisteredResponse", (userInfo) => {
             setNewUsersList((prev) => [...prev, userInfo]);
         });
     }, []);
@@ -368,9 +448,6 @@ const Messenger = () => {
     useEffect(() => {
         socket.current.emit("addUser", userInfo.id, userInfo);
     }, []);
-
-    const [addFriendDialogOpen, setAddFriendDialogOpen] = useState(false);
-    const [viewFriendsDialogOpen, setViewFriendsDialogOpen] = useState(false);
 
     const handleSelectCurrentFriend = (friendInfo) => {
         dispatch(setCurrentFriend({ currentFriend: friendInfo }));
@@ -569,9 +646,9 @@ const Messenger = () => {
                     latestMessage: seenSocketMessage,
                 })
             );
-        }
 
-        dispatch(setSocketMessage({ socketMessage: "" }));
+            dispatch(setSocketMessage({ socketMessage: "" }));
+        }
     }, [socketMessage]);
 
     useEffect(() => {
@@ -581,6 +658,12 @@ const Messenger = () => {
             socketMessage.receiverId === userInfo?.id
         ) {
             // Add an alert when new message comes or notification sound
+            newMessageReceivedSound();
+
+            setShowNewMessageReceivedAlert({
+                showAlert: true,
+                senderName: socketMessage.senderName,
+            });
 
             dispatch(
                 updateLatestMessageStatusOnChatList({
@@ -673,15 +756,6 @@ const Messenger = () => {
         }
     }, [message]);
 
-    const handleAddFriend = () => {
-        console.log(friendToAdd);
-        // Call api...
-
-        setAddFriendDialogOpen(false);
-        setFriendRequestSent_(true);
-        setFriendToAdd({});
-    };
-
     const dispatchSetFriendRequestSent = async () => {
         try {
             const response = await axiosPrivate.get(
@@ -733,14 +807,18 @@ const Messenger = () => {
                 })
             );
 
-            console.log("sender", response.data.sender);
-            console.log("receiver", response.data.receiver);
-
             const senderData = response.data.sender;
             const receiverId = response.data.receiver.userData._id;
 
+            const senderFullName = `${userInfo?.firstName} ${userInfo?.lastName}`;
+
             // emit an event
-            socket.current.emit("sendFriendRequest", senderData, receiverId);
+            socket.current.emit(
+                "sendFriendRequest",
+                senderData,
+                receiverId,
+                senderFullName
+            );
 
             // if success push the new request to friendRequestSent
             dispatch(
@@ -818,6 +896,8 @@ const Messenger = () => {
 
             const receiverId = userInfo?.id;
 
+            const receiverFullName = `${userInfo?.firstName} ${userInfo?.lastName}`;
+
             dispatch(
                 removeFriendRequestReceived({ senderId: senderOfRequestId })
             );
@@ -832,6 +912,7 @@ const Messenger = () => {
             socket.current.emit(
                 "acceptFriendRequest",
                 receiverId,
+                receiverFullName,
                 senderOfRequestId
             );
         } catch (error) {
@@ -842,6 +923,7 @@ const Messenger = () => {
     };
 
     const handleLogout = async () => {
+        localStorage.removeItem("preferredTheme");
         await dispatch(logoutUser());
         socket.current.emit("logout", userInfo.id);
         dispatch(resetAllState());
@@ -856,6 +938,10 @@ const Messenger = () => {
                 mdBelow={mdBelow}
                 handleLogout={handleLogout}
                 setViewFriendsDialogOpen={setViewFriendsDialogOpen}
+                hasUnopenedFriendRequest={hasUnopenedFriendRequest}
+                updateAllFriendRequestsReceivedToSeen={
+                    updateAllFriendRequestsReceivedToSeen
+                }
             />
             <ChatList
                 userId={userInfo.id}
@@ -864,6 +950,7 @@ const Messenger = () => {
                 preferredTheme={preferredTheme}
                 dispatchSetPreferredTheme={dispatchSetPreferredTheme}
                 isDarkMode={isDarkMode}
+                smBelow={smBelow}
                 mdBelow={mdBelow}
                 showChatList={showChatList}
                 currentFriend={currentFriend}
@@ -872,6 +959,10 @@ const Messenger = () => {
                 setAddFriendDialogOpen={setAddFriendDialogOpen}
                 setViewFriendsDialogOpen={setViewFriendsDialogOpen}
                 dispatchSetChatList={dispatchSetChatList}
+                hasUnopenedFriendRequest={hasUnopenedFriendRequest}
+                updateAllFriendRequestsReceivedToSeen={
+                    updateAllFriendRequestsReceivedToSeen
+                }
             />
             <Grid
                 display={showChatList && mdBelow ? "none" : "flex"}
@@ -946,6 +1037,7 @@ const Messenger = () => {
                 friendRequestSent={friendRequestSent}
                 friendRequestReceived={friendRequestReceived}
                 newUsersList={newUsersList}
+                setShowFriendRequestSentAlert={setShowFriendRequestSentAlert}
             />
             <ViewFriendsDialog
                 friendRequestSent={friendRequestSent}
@@ -956,10 +1048,35 @@ const Messenger = () => {
                 cancelFriendRequest={cancelFriendRequest}
                 declineFriendRequest={declineFriendRequest}
                 acceptFriendRequest={acceptFriendRequest}
+                updateAllFriendRequestsReceivedToSeen={
+                    updateAllFriendRequestsReceivedToSeen
+                }
             />
             <FriendRequestSentSnackbar
-                friendRequestSent={friendRequestSent_}
-                setFriendRequestSent={setFriendRequestSent_}
+                showFriendRequestSentAlert={showFriendRequestSentAlert}
+                setShowFriendRequestSentAlert={setShowFriendRequestSentAlert}
+                isDarkMode={isDarkMode}
+                smBelow={smBelow}
+            />
+            <FriendRequestReceivedSnackbar
+                showFriendRequestReceivedAlert={showFriendRequestReceivedAlert}
+                setShowFriendRequestReceivedAlert={
+                    setShowFriendRequestReceivedAlert
+                }
+                isDarkMode={isDarkMode}
+                mdBelow={mdBelow}
+            />
+            <FriendRequestAcceptedSnackbar
+                showNewFriendAlert={showNewFriendAlert}
+                setShowNewFriendAlert={setShowNewFriendAlert}
+                isDarkMode={isDarkMode}
+                mdBelow={mdBelow}
+            />
+            <NewMessageReceivedSnackbar
+                showNewMessageReceivedAlert={showNewMessageReceivedAlert}
+                setShowNewMessageReceivedAlert={setShowNewMessageReceivedAlert}
+                isDarkMode={isDarkMode}
+                mdBelow={mdBelow}
             />
             <InvalidImageSnackbar
                 showUploadError={showUploadError}

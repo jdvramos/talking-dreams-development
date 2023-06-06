@@ -74,12 +74,12 @@ const Friend = ({
     userId,
     currentFriend,
     onlineFriends,
+    smBelow,
 }) => {
     const theme = useTheme();
     const isDarkMode = theme.palette.mode === "dark";
     const isMedium = useMediaQuery(theme.breakpoints.only("md"));
     const isSmall = useMediaQuery(theme.breakpoints.only("sm"));
-    const smBelow = useMediaQuery(theme.breakpoints.down("sm"));
 
     const {
         _id: friendId,

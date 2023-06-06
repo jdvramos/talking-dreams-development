@@ -288,6 +288,7 @@ const ViewFriendsDialog = ({
     cancelFriendRequest,
     declineFriendRequest,
     acceptFriendRequest,
+    updateAllFriendRequestsReceivedToSeen,
 }) => {
     const theme = useTheme();
 
@@ -297,6 +298,11 @@ const ViewFriendsDialog = ({
 
     const handleChangeTab = (_event, newValue) => {
         setValue(newValue);
+    };
+
+    const handleCloseDialogue = () => {
+        setViewFriendsDialogOpen(false);
+        updateAllFriendRequestsReceivedToSeen();
     };
 
     return (
@@ -376,9 +382,7 @@ const ViewFriendsDialog = ({
                 />
             </Box>
             <DialogActions>
-                <Button onClick={() => setViewFriendsDialogOpen(false)}>
-                    Close
-                </Button>
+                <Button onClick={handleCloseDialogue}>Close</Button>
             </DialogActions>
         </Dialog>
     );

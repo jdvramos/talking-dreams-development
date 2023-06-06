@@ -12,7 +12,8 @@ const useUsers = (
     search,
     friends,
     friendRequestSent,
-    friendRequestReceived
+    friendRequestReceived,
+    newUsersList
 ) => {
     const axiosPrivate = useAxiosPrivate();
 
@@ -62,7 +63,14 @@ const useUsers = (
             .catch((e) => {
                 setIsLoading(false);
             });
-    }, [page, search, friends, friendRequestSent, friendRequestReceived]);
+    }, [
+        page,
+        search,
+        friends,
+        friendRequestSent,
+        friendRequestReceived,
+        newUsersList,
+    ]);
 
     return { isLoading, results, setResults, hasNextPage };
 };

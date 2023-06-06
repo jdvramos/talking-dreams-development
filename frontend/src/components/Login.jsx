@@ -37,8 +37,6 @@ const AuthBox = styled(Box)(({ theme }) => ({
 }));
 
 const Login = () => {
-    const userNameRef = useRef();
-
     const dispatch = useDispatch();
 
     const navigate = useNavigate();
@@ -48,10 +46,6 @@ const Login = () => {
     const [errTitle, setErrTitle] = useState("");
     const [errMsg, setErrMsg] = useState("");
     const [success, setSuccess] = useState(false);
-
-    useEffect(() => {
-        userNameRef.current.focus();
-    }, []);
 
     useEffect(() => {
         setErrMsg("");
@@ -138,7 +132,6 @@ const Login = () => {
                             Email
                         </InputLabel>
                         <TextField
-                            inputRef={userNameRef}
                             id="email"
                             type="email"
                             variant="outlined"

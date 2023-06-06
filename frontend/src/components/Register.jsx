@@ -100,7 +100,6 @@ const NAME_REGEX = /^[a-zA-Z]{2,50}( [a-zA-Z]{0,49}[a-zA-Z])? *$/;
 const PWD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%]).{8,24}$/;
 
 const Register = () => {
-    const firstNameRef = useRef();
     const imageUploadRef = useRef();
     const signupDetailBoxRef = useRef();
 
@@ -160,10 +159,6 @@ const Register = () => {
     const showPwdHelperMsg = pwdFocus && !validPwd;
 
     const showMatchHelperMsg = matchFocus && !validMatch;
-
-    useEffect(() => {
-        firstNameRef.current.focus();
-    }, []);
 
     useEffect(() => {
         const result = NAME_REGEX.test(firstName);
@@ -321,7 +316,7 @@ const Register = () => {
             console.log(result);
             setSuccess(true);
             // Clear the input fields by setting the state of user, pwd, matchPwd to empty string
-            navigate("/");
+            navigate("/", { state: { isNewlyRegistered: true } });
         } catch (err) {
             const { status, message } = err;
 
@@ -406,7 +401,6 @@ const Register = () => {
                                         First Name
                                     </InputLabel>
                                     <TextField
-                                        inputRef={firstNameRef}
                                         id="firstName"
                                         variant="outlined"
                                         size="small"

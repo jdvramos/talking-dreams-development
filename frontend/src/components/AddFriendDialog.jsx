@@ -25,38 +25,24 @@ const AddFriendDialog = ({
     friends,
     friendRequestSent,
     friendRequestReceived,
+    newUsersList,
 }) => {
     const theme = useTheme();
 
     const [page, setPage] = useState(1);
     const [search, setSearch] = useState("");
-
     const [userOptions, setUserOptions] = useState([]);
+
     const { isLoading, results, setResults, hasNextPage } = useUsers(
         page,
         search,
         friends,
         friendRequestSent,
-        friendRequestReceived
+        friendRequestReceived,
+        newUsersList
     );
 
-    const defaultValue = {
-        _id: "6455e1c0075b7bf507f6de0b",
-        firstName: "Saul",
-        lastName: "Goodman",
-        email: "saulgoodman@gmail.com",
-        userProfileImage:
-            "https://res.cloudinary.com/dkkcgnkep/image/upload/v1683349951/nxbrqywajxpgm9jzblwz.png",
-        friends: [],
-        preferredTheme: "dark",
-        refreshToken:
-            "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InNhdWxnb29kbWFuQGdtYWlsLmNvbSIsImlhdCI6MTY4NTg4MzgwNSwiZXhwIjoxNjg1OTcwMjA1fQ.65eUiTr7sPY26FPeioBZ8JFwnhxsDUK9ymA82f1AP8k",
-        created_at: "2023-05-06T05:12:32.068Z",
-        updated_at: "2023-06-04T13:03:25.083Z",
-    };
-
     const [value, setValue] = useState(null);
-
     const [inputValue, setInputValue] = useState("");
 
     const showNoResults = !isLoading && results.length === 0;
@@ -126,10 +112,6 @@ const AddFriendDialog = ({
     }, [results]);
 
     useEffect(() => {
-        console.log("VALUE", value);
-    }, [value]);
-
-    useEffect(() => {
         setUserOptions([]);
         setResults([]);
         setPage(1);
@@ -138,12 +120,9 @@ const AddFriendDialog = ({
     useEffect(() => {
         setUserOptions([]);
         setResults([]);
-    }, [friends, friendRequestSent, friendRequestReceived]);
-
-    useEffect(() => {
-        console.log("PAGE", page);
-        console.log("SEARCH", search || "(empty)");
-    }, [page, search]);
+        setInputValue("");
+        setPage(1);
+    }, [friends, friendRequestSent, friendRequestReceived, newUsersList]);
 
     return (
         <Dialog

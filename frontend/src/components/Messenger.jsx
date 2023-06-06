@@ -9,7 +9,7 @@ import InvalidImageSnackbar from "./InvalidImageSnackbar";
 import ChatInfoDrawerMdOnly from "./ChatInfoDrawerMdOnly";
 import ChatInfoDrawerMdBelow from "./ChatInfoDrawerMdBelow";
 import ViewFriendsDialog from "./ViewFriendsDialog";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import {
     getUserInfo,
     getUserProfileImage,
@@ -121,6 +121,10 @@ const Messenger = () => {
     const theme = useTheme();
     const isDarkMode = theme.palette.mode === "dark";
 
+    const location = useLocation();
+    const isNewlyRegistered =
+        location.state && location.state.isNewlyRegistered;
+
     const mdBelow = useMediaQuery(theme.breakpoints.down("md"));
     const lgAbove = useMediaQuery(theme.breakpoints.up("lg"));
     const xlAbove = useMediaQuery(theme.breakpoints.up("xl"));
@@ -143,6 +147,10 @@ const Messenger = () => {
     const [friendIsTyping, setFriendIsTyping] = useState(null);
 
     const [isInitialMount, setIsInitialMount] = useState(true);
+
+    const [newUsersList, setNewUsersList] = useState([]);
+
+    const [getOnlineUsersAgain, setGetOnlineUsersAgain] = useState(false);
 
     const [chatInfoState, setChatInfoState] = useState({
         chatInfoOpen: false,
@@ -256,7 +264,7 @@ const Messenger = () => {
 
     useEffect(() => {
         socket.current = io("ws://localhost:8001");
-        // socket.current = io("ws://192.168.1.11:8001");
+        // socket.current = io("ws://192.168.1.4:8001");
 
         socket.current.on("receiveMessage", (message) => {
             dispatch(setSocketMessage({ socketMessage: message }));
@@ -293,6 +301,10 @@ const Messenger = () => {
 
             console.log("onlineFriends: ", onlineFriendsList);
 
+            if (getOnlineUsersAgain) {
+                setGetOnlineUsersAgain(false);
+            }
+
             dispatch(setOnlineFriends({ onlineFriends: onlineFriendsList }));
         });
 
@@ -310,19 +322,39 @@ const Messenger = () => {
 
         socket.current.on("acceptFriendRequestResponse", async (receiverId) => {
             dispatch(removeFriendRequestSent({ receiverId }));
-            // Since a new friend was added, we need to re-run the persist route to get the updated userInfo since we need an updated userInfo.friends
+
+            setGetOnlineUsersAgain(true);
+
+            // Since a new friend was added, we need to re-run the persist route to get the updated userInfo since we need an updated userInfo.friends, there's a useEffect somewhere that gets all online users again when userInfo.friends changes.
             await dispatch(accessPersistRoute()).unwrap();
 
             await dispatchSetChatList();
         });
+
+        socket.current.on("newUserRegisteredReaction", (userInfo) => {
+            setNewUsersList((prev) => [...prev, userInfo]);
+        });
     }, []);
 
     useEffect(() => {
-        socket.current.emit(
-            "getOnlineUsersAgain",
-            userInfo?.id,
-            userInfo?.friends
-        );
+        console.log("newUsersList:", newUsersList);
+    }, [newUsersList]);
+
+    useEffect(() => {
+        if (isNewlyRegistered) {
+            console.log("userInfo:", userInfo);
+            socket.current.emit("newUserRegistered", userInfo);
+        }
+    }, [isNewlyRegistered]);
+
+    useEffect(() => {
+        if (getOnlineUsersAgain) {
+            socket.current.emit(
+                "getOnlineUsersAgain",
+                userInfo?.id,
+                userInfo?.friends
+            );
+        }
     }, [userInfo.friends]);
 
     useEffect(() => {
@@ -790,7 +822,9 @@ const Messenger = () => {
                 removeFriendRequestReceived({ senderId: senderOfRequestId })
             );
 
-            // Since a new friend was added, we need to re-run the persist route to get the updated userInfo since we need an updated userInfo.friends
+            setGetOnlineUsersAgain(true);
+
+            // Since a new friend was added, we need to re-run the persist route to get the updated userInfo since we need an updated userInfo.friends, there's a useEffect somewhere that gets all online users again when userInfo.friends changes.
             await dispatch(accessPersistRoute()).unwrap();
 
             await dispatchSetChatList();
@@ -911,6 +945,7 @@ const Messenger = () => {
                 friends={userInfo?.friends}
                 friendRequestSent={friendRequestSent}
                 friendRequestReceived={friendRequestReceived}
+                newUsersList={newUsersList}
             />
             <ViewFriendsDialog
                 friendRequestSent={friendRequestSent}

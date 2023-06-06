@@ -37,12 +37,8 @@ const updateAnOnlineUser = (userId, newFriendsList) => {
         // Get the user object to be modified
         const userToBeModified = onlineUsers[userIndex];
 
-        console.log("Before:", userToBeModified);
-
         // Perform the necessary modifications on the user object
         userToBeModified.userInfo.friends = newFriendsList;
-
-        console.log("After:", userToBeModified);
 
         // Update the user object in the onlineUsers array
         onlineUsers[userIndex] = userToBeModified;
@@ -125,9 +121,12 @@ io.on("connection", (socket) => {
     });
 
     socket.on("getOnlineUsersAgain", (userId, userFriends) => {
-        console.log(userId, userFriends);
         updateAnOnlineUser(userId, userFriends);
         io.emit("getAllOnlineUsers", onlineUsers);
+    });
+
+    socket.on("newUserRegistered", (userInfo) => {
+        io.emit("newUserRegisteredReaction", userInfo);
     });
 
     socket.on("logout", (userId) => {

@@ -1,7 +1,6 @@
 import {
     Dialog,
     DialogTitle,
-    DialogContent,
     DialogActions,
     Typography,
     Tabs,
@@ -9,12 +8,12 @@ import {
     Box,
     Avatar,
     Stack,
-    TextField,
     Button,
     useTheme,
     useMediaQuery,
 } from "@mui/material";
-import { useEffect, useState } from "react";
+import { useState } from "react";
+import { MdOutlineScheduleSend, MdOutlineSendAndArchive } from "react-icons/md";
 import formatMessageTime from "../utils/formatMessageTime";
 
 function TabPanelReceived(props) {
@@ -49,6 +48,7 @@ function TabPanelReceived(props) {
                     backgroundColor: isDarkMode ? "#5e5e5e" : "#C4C4C4",
                     borderRadius: "3px",
                 },
+                justifyContent: data.length > 0 ? "normal" : "center",
             }}
         >
             {value === index && data.length > 0 ? (
@@ -140,7 +140,7 @@ function TabPanelReceived(props) {
                 ))
             ) : (
                 <Box>
-                    <Typography variant="body2" mx={1}>
+                    <Typography variant="body2" mx={1} textAlign="center">
                         You have not received any friend requests at the moment
                     </Typography>
                 </Box>
@@ -181,12 +181,12 @@ function TabPanelSent(props) {
                     backgroundColor: isDarkMode ? "#5e5e5e" : "#C4C4C4",
                     borderRadius: "3px",
                 },
+                justifyContent: data.length > 0 ? "normal" : "center",
             }}
         >
             {value === index && data.length > 0 ? (
                 data.map((person) => (
                     <Stack
-                        flex={isDisplayBelow400px ? 1 : 0}
                         direction="row"
                         gap={1}
                         key={person?.userData?._id}
@@ -263,7 +263,7 @@ function TabPanelSent(props) {
                 ))
             ) : (
                 <Box>
-                    <Typography variant="body2" mx={1}>
+                    <Typography variant="body2" mx={1} textAlign="center">
                         You have not sent any friend requests yet
                     </Typography>
                 </Box>
@@ -338,11 +338,21 @@ const ViewFriendsDialog = ({
                     }}
                 >
                     <Tab
-                        label={isDisplayBelow400px ? "R" : "Received"}
+                        icon={
+                            isDisplayBelow400px ? (
+                                <MdOutlineSendAndArchive size={24} />
+                            ) : null
+                        }
+                        label={!isDisplayBelow400px ? "Received" : null}
                         {...a11yProps(0)}
                     />
                     <Tab
-                        label={isDisplayBelow400px ? "S" : "Sent"}
+                        icon={
+                            isDisplayBelow400px ? (
+                                <MdOutlineScheduleSend size={24} />
+                            ) : null
+                        }
+                        label={!isDisplayBelow400px ? "Sent" : null}
                         {...a11yProps(1)}
                     />
                 </Tabs>

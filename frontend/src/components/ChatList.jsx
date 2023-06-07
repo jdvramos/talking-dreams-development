@@ -13,6 +13,8 @@ import {
     InputAdornment,
     useTheme,
     Badge,
+    Skeleton,
+    Stack,
 } from "@mui/material";
 
 import DarkModeIcon from "@mui/icons-material/DarkMode";
@@ -21,8 +23,8 @@ import PeopleIcon from "@mui/icons-material/People";
 import MoreHorizIcon from "@mui/icons-material/MoreHoriz";
 import LogoutIcon from "@mui/icons-material/Logout";
 import SearchIcon from "@mui/icons-material/Search";
-import RefreshIcon from "@mui/icons-material/Refresh";
 import Friend from "./Friend";
+import FriendSkeleton from "./FriendSkeleton";
 import { useEffect, useState } from "react";
 
 const ChatListMain = styled(Box)(({ theme }) => ({
@@ -84,8 +86,27 @@ const SearchTextField = styled(TextField)(({ theme }) => ({
     marginBottom: "10px",
 }));
 
+const NoResults = styled(Box)(({ theme }) => ({
+    flex: 1,
+    width: "70%",
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    justifyContent: "center",
+}));
+
+const NoConnections = styled(Box)(({ theme }) => ({
+    flex: 1,
+    width: "70%",
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    justifyContent: "center",
+}));
+
 const ChatList = ({
     userId,
+    chatList,
     sortedChatList,
     handleSelectCurrentFriend,
     preferredTheme,
@@ -99,9 +120,10 @@ const ChatList = ({
     handleLogout,
     setAddFriendDialogOpen,
     setViewFriendsDialogOpen,
-    dispatchSetChatList,
     hasUnopenedFriendRequest,
     updateAllFriendRequestsReceivedToSeen,
+    setFilterChatList,
+    chatListLoading,
 }) => {
     const theme = useTheme();
 
@@ -285,6 +307,7 @@ const ChatList = ({
                         ),
                         disableUnderline: true, // <== added this
                     }}
+                    onChange={(e) => setFilterChatList(e.target.value)}
                 ></SearchTextField>
             </CLSearch>
             <CLFriends
@@ -299,8 +322,11 @@ const ChatList = ({
                     },
                 }}
             >
-                {sortedChatList &&
-                    sortedChatList.length > 0 &&
+                {chatListLoading ? (
+                    Array.from({ length: 3 }).map((_, index) => (
+                        <FriendSkeleton key={index} />
+                    ))
+                ) : sortedChatList && sortedChatList.length > 0 ? (
                     sortedChatList.map((friend) => (
                         <Friend
                             key={friend.friendInfo._id}
@@ -313,7 +339,54 @@ const ChatList = ({
                             onlineFriends={onlineFriends}
                             smBelow={smBelow}
                         />
-                    ))}
+                    ))
+                ) : chatList.length > 0 ? (
+                    <NoResults>
+                        <Typography
+                            variant="body1"
+                            color="text.secondary"
+                            fontWeight="600"
+                        >
+                            No results
+                        </Typography>
+                    </NoResults>
+                ) : (
+                    <NoConnections>
+                        <Typography
+                            variant="body1"
+                            color="text.secondary"
+                            fontWeight="600"
+                        >
+                            No connections
+                        </Typography>
+                        <Typography
+                            variant="body2"
+                            color="text.secondary"
+                            component="div"
+                        >
+                            <Box
+                                sx={{
+                                    display: "flex",
+                                    alignItems: "center",
+                                    justifyContent: "center",
+                                }}
+                            >
+                                Click
+                                <Box
+                                    sx={{
+                                        mx: "5px",
+                                        display: "flex",
+                                        alignItems: "center",
+                                        justifyContent: "center",
+                                    }}
+                                >
+                                    <PersonAddIcon sx={{ fontSize: 18 }} />
+                                </Box>
+                                to find people
+                            </Box>
+                        </Typography>
+                    </NoConnections>
+                )}
             </CLFriends>
         </ChatListMain>
     );

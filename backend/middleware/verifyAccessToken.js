@@ -7,8 +7,6 @@ const verifyAccessToken = (req, res, next) => {
         return res.sendStatus(StatusCodes.UNAUTHORIZED);
     }
 
-    console.log("Access Token: ", authHeader); // Bearer <token>
-
     const token = authHeader.split(" ")[1];
 
     jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {

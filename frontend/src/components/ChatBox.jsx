@@ -22,7 +22,9 @@ import ThumbUpIcon from "@mui/icons-material/ThumbUp";
 import SendIcon from "@mui/icons-material/Send";
 import CloseIcon from "@mui/icons-material/Close";
 import FriendOpening from "./FriendOpening";
+import FriendOpeningSkeleton from "./FriendOpeningSkeleton";
 import Messages from "./Messages";
+import MessagesSkeleton from "./MessagesSkeleton";
 import { useEffect, useRef, useState } from "react";
 
 const CBHeader = styled(Box)(({ theme }) => ({
@@ -155,6 +157,7 @@ const ChatBox = ({
     validImage,
     handleDeleteImagePreview,
     sendImage,
+    currentMessagesLoading,
 }) => {
     const theme = useTheme();
 
@@ -162,6 +165,14 @@ const ChatBox = ({
 
     const [anchorEl, setAnchorEl] = useState(null);
     const [isFriendOnline, setFriendOnline] = useState(false);
+
+    const chatBoxRef = useRef(null);
+
+    const [chatBoxHeight, setChatBoxHeight] = useState(0);
+
+    const [numOfAllowedSkeletonMessages, setNumOfAllowedSkeletonMessages] =
+        useState(0);
+
     const open = Boolean(anchorEl);
 
     const imageUploadRef = useRef();
@@ -194,6 +205,22 @@ const ChatBox = ({
                 : false;
         setFriendOnline(isOnline);
     }, [onlineFriends, currentFriend]);
+
+    useEffect(() => {
+        if (chatBoxRef.current) {
+            const height = chatBoxRef.current.offsetHeight;
+            setChatBoxHeight(height);
+        }
+    }, [currentFriend]);
+
+    useEffect(() => {
+        console.log("CHATBOXHEIGHT: ", chatBoxHeight);
+    }, [chatBoxHeight, currentFriend]);
+
+    useEffect(() => {
+        const messagesBoxHeight = chatBoxHeight - 248;
+        setNumOfAllowedSkeletonMessages(Math.floor(messagesBoxHeight / 81));
+    }, [chatBoxHeight, currentFriend]);
 
     return (
         <>
@@ -264,6 +291,7 @@ const ChatBox = ({
                         </IconButton>
                     </CBHeader>
                     <CBMessages
+                        ref={chatBoxRef}
                         sx={{
                             "&::-webkit-scrollbar": {
                                 width: "6px",
@@ -278,17 +306,30 @@ const ChatBox = ({
                             },
                         }}
                     >
-                        <FriendOpening currentFriend={currentFriend} />
-                        <Messages
-                            currentMessages={currentMessages}
-                            userId={userId}
-                            currentFriend={currentFriend}
-                            isDarkMode={isDarkMode}
-                            scrollRef={scrollRef}
-                            currentFriendIsTypingInfo={
-                                currentFriendIsTypingInfo
-                            }
-                        />
+                        {currentMessagesLoading ? (
+                            <>
+                                <FriendOpeningSkeleton />
+                                <MessagesSkeleton
+                                    numOfAllowedSkeletonMessages={
+                                        numOfAllowedSkeletonMessages
+                                    }
+                                />
+                            </>
+                        ) : (
+                            <>
+                                <FriendOpening currentFriend={currentFriend} />
+                                <Messages
+                                    currentMessages={currentMessages}
+                                    userId={userId}
+                                    currentFriend={currentFriend}
+                                    isDarkMode={isDarkMode}
+                                    scrollRef={scrollRef}
+                                    currentFriendIsTypingInfo={
+                                        currentFriendIsTypingInfo
+                                    }
+                                />
+                            </>
+                        )}
                     </CBMessages>
                     <CBSender
                         sx={{

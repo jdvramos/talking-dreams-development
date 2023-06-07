@@ -66,7 +66,7 @@ const messengerSlice = createSlice({
             // Filtering does not work (https://stackoverflow.com/questions/67436949/removing-a-value-from-an-array-using-redux-toolkit)
             state.friendRequestSent.splice(
                 state.friendRequestSent.findIndex(
-                    (sentFR) => sentFR.id === receiverId
+                    (sentFR) => sentFR.userData._id === receiverId
                 ),
                 1
             );
@@ -80,7 +80,7 @@ const messengerSlice = createSlice({
             // Filtering does not work (https://stackoverflow.com/questions/67436949/removing-a-value-from-an-array-using-redux-toolkit)
             state.friendRequestReceived.splice(
                 state.friendRequestReceived.findIndex(
-                    (receivedFR) => receivedFR.id === senderId
+                    (receivedFR) => receivedFR.userData._id === senderId
                 ),
                 1
             );

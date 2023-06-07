@@ -131,8 +131,6 @@ module.exports.loginUser = async (req, res) => {
 module.exports.logoutUser = async (req, res) => {
     const cookies = req.cookies;
 
-    console.log(cookies?.jwt);
-
     if (!cookies?.jwt) {
         return res.sendStatus(StatusCodes.NO_CONTENT);
     }

@@ -12,8 +12,9 @@ import {
     useTheme,
     useMediaQuery,
 } from "@mui/material";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { MdOutlineScheduleSend, MdOutlineSendAndArchive } from "react-icons/md";
+import shortenText from "../utils/shortenText";
 import formatMessageTime from "../utils/formatMessageTime";
 
 function TabPanelReceived(props) {
@@ -88,7 +89,7 @@ function TabPanelReceived(props) {
                                     </Typography>
                                 </Stack>
                                 <Typography variant="caption">
-                                    {person?.userData?.email}
+                                    {shortenText(16, person?.userData?.email)}
                                 </Typography>
                             </Stack>
                             <Stack direction="row">
@@ -156,7 +157,7 @@ function TabPanelSent(props) {
         data,
         theme,
         isDarkMode,
-        isDisplayBelow400px,
+        isDisplayBelow425px,
         cancelFriendRequest,
     } = props;
 
@@ -169,7 +170,7 @@ function TabPanelSent(props) {
             flex={1}
             gap={2}
             sx={{
-                alignItems: !isDisplayBelow400px && "center",
+                alignItems: !isDisplayBelow425px && "center",
                 overflowY: "auto",
                 "&::-webkit-scrollbar": {
                     width: "6px",
@@ -192,9 +193,9 @@ function TabPanelSent(props) {
                         key={person?.userData?._id}
                         mx={1}
                         sx={
-                            !isDisplayBelow400px
+                            !isDisplayBelow425px
                                 ? {
-                                      width: "222px",
+                                      width: "250px",
                                   }
                                 : {}
                         }
@@ -214,6 +215,7 @@ function TabPanelSent(props) {
                                     direction="row"
                                     justifyContent="space-between"
                                     alignItems="center"
+                                    flex={1}
                                 >
                                     <Typography
                                         fontWeight={500}
@@ -227,7 +229,10 @@ function TabPanelSent(props) {
                                 </Stack>
 
                                 <Typography variant="caption">
-                                    {person?.userData?.email}
+                                    {shortenText(
+                                        isDisplayBelow425px ? 23 : 27,
+                                        person?.userData?.email
+                                    )}
                                 </Typography>
                             </Stack>
                             <Stack direction="row">
@@ -292,7 +297,7 @@ const ViewFriendsDialog = ({
 }) => {
     const theme = useTheme();
 
-    const isDisplayBelow400px = useMediaQuery("(max-width:400px)");
+    const isDisplayBelow425px = useMediaQuery("(max-width:425px)");
 
     const [value, setValue] = useState(0);
 
@@ -304,6 +309,12 @@ const ViewFriendsDialog = ({
         setViewFriendsDialogOpen(false);
         updateAllFriendRequestsReceivedToSeen();
     };
+
+    useEffect(() => {
+        if (!viewFriendsDialogOpen) {
+            setValue(0);
+        }
+    }, [viewFriendsDialogOpen]);
 
     return (
         <Dialog
@@ -333,7 +344,7 @@ const ViewFriendsDialog = ({
                     value={value}
                     onChange={handleChangeTab}
                     sx={{
-                        width: isDisplayBelow400px ? "50px" : "90px",
+                        width: isDisplayBelow425px ? "50px" : "90px",
                         borderRight: 1,
                         borderColor: "divider",
                         "& .MuiTabs-scroller": {
@@ -345,20 +356,20 @@ const ViewFriendsDialog = ({
                 >
                     <Tab
                         icon={
-                            isDisplayBelow400px ? (
+                            isDisplayBelow425px ? (
                                 <MdOutlineSendAndArchive size={24} />
                             ) : null
                         }
-                        label={!isDisplayBelow400px ? "Received" : null}
+                        label={!isDisplayBelow425px ? "Received" : null}
                         {...a11yProps(0)}
                     />
                     <Tab
                         icon={
-                            isDisplayBelow400px ? (
+                            isDisplayBelow425px ? (
                                 <MdOutlineScheduleSend size={24} />
                             ) : null
                         }
-                        label={!isDisplayBelow400px ? "Sent" : null}
+                        label={!isDisplayBelow425px ? "Sent" : null}
                         {...a11yProps(1)}
                     />
                 </Tabs>
@@ -377,7 +388,7 @@ const ViewFriendsDialog = ({
                     data={friendRequestSent}
                     theme={theme}
                     isDarkMode={isDarkMode}
-                    isDisplayBelow400px={isDisplayBelow400px}
+                    isDisplayBelow425px={isDisplayBelow425px}
                     cancelFriendRequest={cancelFriendRequest}
                 />
             </Box>

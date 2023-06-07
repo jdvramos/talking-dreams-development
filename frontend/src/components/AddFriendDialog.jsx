@@ -260,7 +260,7 @@ const AddFriendDialog = ({
                 ></Autocomplete>
             </DialogContent>
             <DialogActions>
-                <Button onClick={handleCloseDialogue}>Cancel</Button>
+                <Button onClick={handleCloseDialogue}>Close</Button>
                 <Button onClick={handleClick} autoFocus disabled={!value}>
                     Add
                 </Button>

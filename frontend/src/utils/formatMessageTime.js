@@ -7,7 +7,7 @@ const formatMessageTime = function (time) {
     );
 
     if (distanceInSeconds < 60) {
-        return `${distanceInSeconds}s`;
+        return `1m`;
     } else if (distanceInSeconds < 60 * 60) {
         const distanceInMinutes = Math.floor(distanceInSeconds / 60);
         return `${distanceInMinutes}m`;

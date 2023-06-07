@@ -285,18 +285,10 @@ const Register = () => {
         const properFirstName = capitalizeFirstLetterOfEveryWord(firstName);
         const properLastName = capitalizeFirstLetterOfEveryWord(lastName);
 
-        console.log("First name: ", properFirstName);
-        console.log("Last name: ", properLastName);
-        console.log("Email: ", email);
-        console.log("Pwd: ", pwd);
-        console.log("Confirm: ", matchPwd);
-
         const data = new FormData();
         data.append("file", realProfileImageData);
         data.append("upload_preset", "chat-app");
         data.append("cloud_name", "dkkcgnkep");
-
-        console.log(realProfileImageData);
 
         try {
             const userProfileImage = await dispatch(

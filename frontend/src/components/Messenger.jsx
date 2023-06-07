@@ -156,6 +156,11 @@ const Messenger = () => {
 
     const [newUsersList, setNewUsersList] = useState([]);
 
+    const [filterChatList, setFilterChatList] = useState("");
+
+    const [chatListLoading, setChatListLoading] = useState(false);
+    const [currentMessagesLoading, setCurrentMessagesLoading] = useState(false);
+
     const [getOnlineUsersAgain, setGetOnlineUsersAgain] = useState(false);
 
     const [newMessageReceivedSound] = useSound(newMessage);
@@ -276,13 +281,18 @@ const Messenger = () => {
 
     useEffect(() => {
         if (chatList) {
-            // Creating a copy of the chatList array to avoid error
             const chatListCopy = [...chatList];
-            const sortedChatList = chatListCopy.sort(compareDates);
-            console.log("sortedChatList", sortedChatList);
+            const sortedChatList = chatListCopy
+                .sort(compareDates)
+                .filter((chat) => {
+                    const fullName = `${chat.friendInfo.firstName} ${chat.friendInfo.lastName}`;
+                    return fullName
+                        .toLowerCase()
+                        .includes(filterChatList.toLowerCase());
+                });
             setSortedChatList(sortedChatList);
         }
-    }, [chatList]);
+    }, [chatList, filterChatList]);
 
     useEffect(() => {
         const getPreferredTheme = async () => {
@@ -459,12 +469,15 @@ const Messenger = () => {
 
     const dispatchSetChatList = async () => {
         try {
+            setChatListLoading(true);
             const response = await axiosPrivate.get(GET_CHATLIST_URL);
             dispatch(setChatList({ chatList: response.data.chatList }));
         } catch (err) {
             await dispatch(logoutUser());
             dispatch(resetAllState());
             navigate("/login");
+        } finally {
+            setChatListLoading(false);
         }
     };
 
@@ -473,6 +486,7 @@ const Messenger = () => {
     }, []);
 
     const dispatchSetCurrentMessages = async (friendId) => {
+        setCurrentMessagesLoading(true);
         try {
             const response = await axiosPrivate.get(
                 `${GET_CURRENT_MESSAGES_URL}/${friendId}`
@@ -486,6 +500,8 @@ const Messenger = () => {
             await dispatch(logoutUser());
             dispatch(resetAllState());
             navigate("/login");
+        } finally {
+            setCurrentMessagesLoading(false);
         }
     };
 
@@ -945,6 +961,7 @@ const Messenger = () => {
             />
             <ChatList
                 userId={userInfo.id}
+                chatList={chatList}
                 sortedChatList={sortedChatList}
                 handleSelectCurrentFriend={handleSelectCurrentFriend}
                 preferredTheme={preferredTheme}
@@ -958,11 +975,12 @@ const Messenger = () => {
                 handleLogout={handleLogout}
                 setAddFriendDialogOpen={setAddFriendDialogOpen}
                 setViewFriendsDialogOpen={setViewFriendsDialogOpen}
-                dispatchSetChatList={dispatchSetChatList}
                 hasUnopenedFriendRequest={hasUnopenedFriendRequest}
                 updateAllFriendRequestsReceivedToSeen={
                     updateAllFriendRequestsReceivedToSeen
                 }
+                setFilterChatList={setFilterChatList}
+                chatListLoading={chatListLoading}
             />
             <Grid
                 display={showChatList && mdBelow ? "none" : "flex"}
@@ -996,6 +1014,7 @@ const Messenger = () => {
                         validImage={validImage}
                         handleDeleteImagePreview={handleDeleteImagePreview}
                         sendImage={sendImage}
+                        currentMessagesLoading={currentMessagesLoading}
                     />
                 </ChatBoxGridItem>
                 {chatInfoState.chatInfoOpen && lgAbove && (

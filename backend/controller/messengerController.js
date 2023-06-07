@@ -359,9 +359,6 @@ module.exports.declineReceivedFriendRequest = async (req, res) => {
         throw new NotFoundError("Receiver not found.");
     }
 
-    console.log("updatedUserData", updatedUserData);
-    console.log("updatedSenderOfTheRequestData", updatedSenderOfTheRequestData);
-
     res.sendStatus(StatusCodes.OK);
 };
 
@@ -419,9 +416,6 @@ module.exports.acceptReceivedFriendRequest = async (req, res) => {
     if (!updatedSenderOfTheRequestData) {
         throw new NotFoundError("Receiver not found.");
     }
-
-    console.log("updatedUserData", updatedUserData);
-    console.log("updatedSenderOfTheRequestData", updatedSenderOfTheRequestData);
 
     res.sendStatus(StatusCodes.OK);
 };

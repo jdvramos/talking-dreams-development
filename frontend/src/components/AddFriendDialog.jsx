@@ -139,7 +139,7 @@ const AddFriendDialog = ({
             onClose={handleCloseDialogue}
             fullWidth
         >
-            <DialogTitle id="dialog-title">Add a friend</DialogTitle>
+            <DialogTitle id="dialog-title">Find people</DialogTitle>
             <DialogContent>
                 <Typography mb="3px">Search by name or email:</Typography>
                 <Autocomplete
@@ -257,11 +257,27 @@ const AddFriendDialog = ({
                         },
                         // disabled: isLoading,
                     }}
+                    sx={{
+                        "& .MuiFormControl-root": {
+                            "& .Mui-focused": {
+                                "& .MuiOutlinedInput-notchedOutline": {
+                                    borderColor: "#1976d2",
+                                },
+                            },
+                        },
+                    }}
                 ></Autocomplete>
             </DialogContent>
             <DialogActions>
-                <Button onClick={handleCloseDialogue}>Close</Button>
-                <Button onClick={handleClick} autoFocus disabled={!value}>
+                <Button sx={{ color: "#1976d2" }} onClick={handleCloseDialogue}>
+                    Close
+                </Button>
+                <Button
+                    sx={{ color: "#1976d2" }}
+                    onClick={handleClick}
+                    autoFocus
+                    disabled={!value}
+                >
                     Add
                 </Button>
             </DialogActions>

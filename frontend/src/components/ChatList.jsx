@@ -13,8 +13,7 @@ import {
     InputAdornment,
     useTheme,
     Badge,
-    Skeleton,
-    Stack,
+    Tooltip,
 } from "@mui/material";
 
 import DarkModeIcon from "@mui/icons-material/DarkMode";
@@ -189,24 +188,26 @@ const ChatList = ({
                         Chats
                     </Typography>
                     <Box pr="20px">
-                        <IconButton
-                            id="menu-btn"
-                            onClick={handleClickMenu}
-                            size="small"
-                            sx={{
-                                backgroundColor: isDarkMode
-                                    ? "grey.800"
-                                    : "grey.200",
-                                marginRight: "13px",
-                                "&:hover": {
+                        <Tooltip title="Options" placement="bottom">
+                            <IconButton
+                                id="menu-btn"
+                                onClick={handleClickMenu}
+                                size="small"
+                                sx={{
                                     backgroundColor: isDarkMode
-                                        ? "grey.700"
-                                        : "grey.300",
-                                },
-                            }}
-                        >
-                            <MoreHorizIcon />
-                        </IconButton>
+                                        ? "grey.800"
+                                        : "grey.200",
+                                    marginRight: "13px",
+                                    "&:hover": {
+                                        backgroundColor: isDarkMode
+                                            ? "grey.700"
+                                            : "grey.300",
+                                    },
+                                }}
+                            >
+                                <MoreHorizIcon />
+                            </IconButton>
+                        </Tooltip>
                         <Menu
                             id="menu-btn"
                             anchorEl={anchorEl}
@@ -236,55 +237,59 @@ const ChatList = ({
                             </MenuItem>
                         </Menu>
                         {mdBelow && (
+                            <Tooltip title="Friend Requests" placement="bottom">
+                                <IconButton
+                                    id="view-friends-btn"
+                                    size="small"
+                                    sx={{
+                                        backgroundColor: isDarkMode
+                                            ? "grey.800"
+                                            : "grey.200",
+                                        marginRight: "13px",
+                                        "&:hover": {
+                                            backgroundColor: isDarkMode
+                                                ? "grey.700"
+                                                : "grey.300",
+                                        },
+                                    }}
+                                    onClick={handleOpenFriendsDialogue}
+                                >
+                                    {hasUnopenedFriendRequest ? (
+                                        <Badge
+                                            variant="dot"
+                                            sx={{
+                                                "& .MuiBadge-badge": {
+                                                    backgroundColor: "#1976d2",
+                                                    right: "-3px",
+                                                },
+                                            }}
+                                        >
+                                            <PeopleIcon />
+                                        </Badge>
+                                    ) : (
+                                        <PeopleIcon />
+                                    )}
+                                </IconButton>
+                            </Tooltip>
+                        )}
+                        <Tooltip title="Find People" placement="bottom">
                             <IconButton
-                                id="view-friends-btn"
                                 size="small"
                                 sx={{
                                     backgroundColor: isDarkMode
                                         ? "grey.800"
                                         : "grey.200",
-                                    marginRight: "13px",
                                     "&:hover": {
                                         backgroundColor: isDarkMode
                                             ? "grey.700"
                                             : "grey.300",
                                     },
                                 }}
-                                onClick={handleOpenFriendsDialogue}
+                                onClick={() => setAddFriendDialogOpen(true)}
                             >
-                                {hasUnopenedFriendRequest ? (
-                                    <Badge
-                                        variant="dot"
-                                        sx={{
-                                            "& .MuiBadge-badge": {
-                                                backgroundColor: "#1976d2",
-                                                right: "-3px",
-                                            },
-                                        }}
-                                    >
-                                        <PeopleIcon />
-                                    </Badge>
-                                ) : (
-                                    <PeopleIcon />
-                                )}
+                                <PersonAddIcon />
                             </IconButton>
-                        )}
-                        <IconButton
-                            size="small"
-                            sx={{
-                                backgroundColor: isDarkMode
-                                    ? "grey.800"
-                                    : "grey.200",
-                                "&:hover": {
-                                    backgroundColor: isDarkMode
-                                        ? "grey.700"
-                                        : "grey.300",
-                                },
-                            }}
-                            onClick={() => setAddFriendDialogOpen(true)}
-                        >
-                            <PersonAddIcon />
-                        </IconButton>
+                        </Tooltip>
                     </Box>
                 </CLHeaderContent>
             </CLHeader>

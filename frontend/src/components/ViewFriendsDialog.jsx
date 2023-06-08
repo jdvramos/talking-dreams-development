@@ -343,6 +343,7 @@ const ViewFriendsDialog = ({
                     variant="scrollable"
                     value={value}
                     onChange={handleChangeTab}
+                    className="Hello"
                     sx={{
                         width: isDisplayBelow425px ? "50px" : "90px",
                         borderRight: 1,
@@ -351,6 +352,14 @@ const ViewFriendsDialog = ({
                             display: "flex",
                             alignItems: "center",
                             justifyContent: "center",
+                            "& .MuiTabs-flexContainer": {
+                                "& .Mui-selected": {
+                                    color: "#1976d2",
+                                },
+                            },
+                            "& .MuiTabs-indicator": {
+                                backgroundColor: "#1976d2",
+                            },
                         },
                     }}
                 >
@@ -393,7 +402,9 @@ const ViewFriendsDialog = ({
                 />
             </Box>
             <DialogActions>
-                <Button onClick={handleCloseDialogue}>Close</Button>
+                <Button sx={{ color: "#1976d2" }} onClick={handleCloseDialogue}>
+                    Close
+                </Button>
             </DialogActions>
         </Dialog>
     );

@@ -12,6 +12,7 @@ import {
 } from "@mui/material";
 import FilterIcon from "@mui/icons-material/Filter";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
+import dateToString from "../utils/dateToString";
 import { useEffect, useState } from "react";
 import CloseIcon from "@mui/icons-material/Close";
 
@@ -143,7 +144,7 @@ const ChatInfoDrawerMdBelow = ({
                         {currentFriend?.email}
                     </Typography>
                     <Typography variant="body2" color="text.secondary">
-                        Joined on December 18, 2018
+                        {`Joined on ${dateToString(currentFriend?.created_at)}`}
                     </Typography>
                 </FriendInfoMain>
                 <MediaButton

@@ -9,6 +9,7 @@ import InvalidImageSnackbar from "./InvalidImageSnackbar";
 import ChatInfoDrawerMdOnly from "./ChatInfoDrawerMdOnly";
 import ChatInfoDrawerMdBelow from "./ChatInfoDrawerMdBelow";
 import ViewFriendsDialog from "./ViewFriendsDialog";
+import ViewProfileDialog from "./ViewProfileDialog";
 import FriendRequestAcceptedSnackbar from "./FriendRequestAcceptedSnackbar";
 import FriendRequestReceivedSnackbar from "./FriendRequestReceivedSnackbar";
 import NewMessageReceivedSnackbar from "./NewMessageReceivedSnackbar";
@@ -195,6 +196,7 @@ const Messenger = () => {
 
     const [addFriendDialogOpen, setAddFriendDialogOpen] = useState(false);
     const [viewFriendsDialogOpen, setViewFriendsDialogOpen] = useState(false);
+    const [viewProfileDialogOpen, setViewProfileDialogOpen] = useState(false);
 
     const updateAllFriendRequestsReceivedToSeen = async () => {
         try {
@@ -460,6 +462,7 @@ const Messenger = () => {
     }, []);
 
     const handleSelectCurrentFriend = (friendInfo) => {
+        setCurrentMessagesLoading(true);
         dispatch(setCurrentFriend({ currentFriend: friendInfo }));
 
         if (mdBelow) {
@@ -486,7 +489,6 @@ const Messenger = () => {
     }, []);
 
     const dispatchSetCurrentMessages = async (friendId) => {
-        setCurrentMessagesLoading(true);
         try {
             const response = await axiosPrivate.get(
                 `${GET_CURRENT_MESSAGES_URL}/${friendId}`
@@ -958,6 +960,7 @@ const Messenger = () => {
                 updateAllFriendRequestsReceivedToSeen={
                     updateAllFriendRequestsReceivedToSeen
                 }
+                setViewProfileDialogOpen={setViewProfileDialogOpen}
             />
             <ChatList
                 userId={userInfo.id}
@@ -1070,6 +1073,12 @@ const Messenger = () => {
                 updateAllFriendRequestsReceivedToSeen={
                     updateAllFriendRequestsReceivedToSeen
                 }
+            />
+            <ViewProfileDialog
+                userInfo={userInfo}
+                userProfileImage={userProfileImage}
+                viewProfileDialogOpen={viewProfileDialogOpen}
+                setViewProfileDialogOpen={setViewProfileDialogOpen}
             />
             <FriendRequestSentSnackbar
                 showFriendRequestSentAlert={showFriendRequestSentAlert}

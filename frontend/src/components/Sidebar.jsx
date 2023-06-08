@@ -57,6 +57,7 @@ const Sidebar = ({
     setViewFriendsDialogOpen,
     hasUnopenedFriendRequest,
     updateAllFriendRequestsReceivedToSeen,
+    setViewProfileDialogOpen,
 }) => {
     const handleOpenFriendsDialogue = () => {
         updateAllFriendRequestsReceivedToSeen();
@@ -66,7 +67,7 @@ const Sidebar = ({
     return (
         <SideBarMain display={mdBelow ? "none" : "flex"}>
             <UpperIconButtonContainer>
-                <Tooltip title="Friends" placement="right">
+                <Tooltip title="Friend Requests" placement="right">
                     <IconButtonRounded
                         size="large"
                         onClick={handleOpenFriendsDialogue}
@@ -98,6 +99,7 @@ const Sidebar = ({
                     overlap="circular"
                     anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
                     variant="dot"
+                    onClick={() => setViewProfileDialogOpen(true)}
                 >
                     <Avatar
                         src={userProfileImage}

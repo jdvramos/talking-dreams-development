@@ -196,7 +196,11 @@ const Friend = ({
                                 : "You sent a photo"}
                         </Typography>
                     ) : (
-                        <Typography variant="caption" fontSize="0.85rem">
+                        <Typography
+                            variant="caption"
+                            fontSize="0.85rem"
+                            color="text.secondary"
+                        >
                             {shortenText(
                                 messageLimit,
                                 `${firstName} connected with you`

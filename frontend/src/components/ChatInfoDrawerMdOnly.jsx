@@ -11,6 +11,7 @@ import {
 } from "@mui/material";
 import FilterIcon from "@mui/icons-material/Filter";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
+import dateToString from "../utils/dateToString";
 import { useEffect, useState } from "react";
 
 const FriendInfoMain = styled(Box)(({ theme }) => ({
@@ -119,7 +120,7 @@ const ChatInfoDrawerMdOnly = ({
                         {currentFriend?.email}
                     </Typography>
                     <Typography variant="body2" color="text.secondary">
-                        Joined on December 18, 2018
+                        {`Joined on ${dateToString(currentFriend?.created_at)}`}
                     </Typography>
                 </FriendInfoMain>
                 <MediaButton
